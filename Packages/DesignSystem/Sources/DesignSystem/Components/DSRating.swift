@@ -68,20 +68,20 @@ public struct DSRating: View {
 
         switch (isFilled, isHalf) {
         case (true, _):
-            starImage(systemName: "star.fill", index: index)
+            starImage(systemName: "star.fill", color: DSColors.textPrimary, index: index)
         case (false, true):
-            starImage(systemName: "star.leadinghalf.filled", index: index)
+            starImage(systemName: "star.leadinghalf.filled", color: DSColors.textPrimary, index: index)
         default:
-            starImage(systemName: "star", index: index)
+            starImage(systemName: "star", color: DSColors.textSecondary, index: index)
         }
     }
 
-    private func starImage(systemName: String, index: Int) -> some View {
+    private func starImage(systemName: String, color: Color, index: Int) -> some View {
         Image(systemName: systemName)
             .resizable()
             .aspectRatio(contentMode: .fit)
             .frame(width: size, height: size)
-            .foregroundStyle(DSColors.textPrimary)
+            .foregroundStyle(color)
             .onTapGesture {
                 guard isInteractive else { return }
                 interactiveValue = index
