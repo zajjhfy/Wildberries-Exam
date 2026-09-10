@@ -12,6 +12,7 @@ import SwiftUI
 public struct DSTextTabBar: View {
 
     @Binding public var selectedIndex: Int
+    @State private var scrollInfo = ScrollInfo()
     public let tabs: [String]
 
     public init(selectedIndex: Binding<Int>, tabs: [String]) {
@@ -28,21 +29,52 @@ public struct DSTextTabBar: View {
                             selectedIndex = index
                         }
                     } label: {
-                        VStack(spacing: 4) {
-                            Text(title)
-                                .font(DSTypography.tabBarTitle)
-                                .foregroundStyle(
-                                    selectedIndex == index
-                                        ? DSColors.textPrimary
-                                        : DSColors.textSecondary
-                                )
-                        }
+                        Text(title)
+                            .font(DSTypography.tabBarTitle)
+                            .foregroundStyle(
+                                selectedIndex == index
+                                    ? DSColors.textPrimary
+                                    : DSColors.textSecondary
+                            )
                     }
                     .buttonStyle(.plain)
                 }
             }
             .padding(.horizontal, 16)
         }
+        .onScrollGeometryChange(for: ScrollInfo.self) { geometry in
+            ScrollInfo(
+                offset: geometry.contentOffset.x + geometry.contentInsets.leading,
+                maxOffset: geometry.contentSize.width
+                    - geometry.containerSize.width
+                    + geometry.contentInsets.trailing
+            )
+        } action: { _, newValue in
+            scrollInfo = newValue
+        }
+        .overlay(alignment: .leading) {
+            if scrollInfo.offset > 0 {
+                fadeGradient(startPoint: .leading, endPoint: .trailing)
+                    .transition(.opacity)
+            }
+        }
+        .animation(.easeInOut(duration: 0.2), value: scrollInfo.offset > 0)
+    }
+
+    private struct ScrollInfo: Equatable {
+        var offset: CGFloat = 0
+        var maxOffset: CGFloat = 0
+    }
+
+    @ViewBuilder
+    private func fadeGradient(
+        startPoint: UnitPoint,
+        endPoint: UnitPoint
+    ) -> some View {
+        DSColors.textTabBarGradient
+            .frame(width: 50, height: 52)
+            .allowsHitTesting(false)
+            .rotationEffect(Angle(degrees: -180))
     }
 }
 

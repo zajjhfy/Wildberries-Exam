@@ -103,6 +103,16 @@ public enum DSColors {
         endPoint: .top
     )
 
+    /// Градиент для фейда у текстового таб бара
+    public static let textTabBarGradient = LinearGradient(
+        stops: [
+            .init(color: .white.opacity(0), location: 0),
+            .init(color: .white, location: 0.8029)
+        ],
+        startPoint: .leading,
+        endPoint: .trailing
+    )
+
     // MARK: - Text
 
     /// Основной цвет текста.
