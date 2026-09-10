@@ -53,13 +53,14 @@ public struct DSCartButton: View {
 
             Text("\(price) ₽")
                 .font(DSTypography.price)
-                .frame(minWidth: 34, maxHeight: 17)
+                .frame(minWidth: 34)
                 .contentTransition(.numericText())
 
             Button(action: onIncrement) {
                 Image(systemName: "plus")
                     .font(DSTypography.stepperIcon)
                     .frame(width: 16, height: 16)
+                    .contentShape(Rectangle())
             }
             .buttonStyle(StepperButtonStyle())
         }
