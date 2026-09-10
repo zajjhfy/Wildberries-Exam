@@ -46,9 +46,10 @@ public struct DSCartButton: View {
             Button(action: onDecrement) {
                 Image(systemName: "minus")
                     .font(DSTypography.stepperIcon)
-                    .frame(width: 16, height: 17)
+                    .frame(width: 16, height: 16)
+                    .contentShape(Rectangle())
             }
-            .frame(width: 16, height: 17)
+            .buttonStyle(StepperButtonStyle())
 
             Text("\(price) ₽")
                 .font(DSTypography.price)
@@ -58,9 +59,9 @@ public struct DSCartButton: View {
             Button(action: onIncrement) {
                 Image(systemName: "plus")
                     .font(DSTypography.stepperIcon)
-                    .frame(width: 16, height: 17)
+                    .frame(width: 16, height: 16)
             }
-            .frame(width: 16, height: 17)
+            .buttonStyle(StepperButtonStyle())
         }
         .foregroundStyle(.white)
         .padding(.horizontal, 12)
@@ -68,19 +69,6 @@ public struct DSCartButton: View {
         .frame(height: 32)
         .background(DSColors.accentGradient)
         .clipShape(RoundedRectangle(cornerRadius: 6))
-        .overlay {
-            HStack {
-                Color.clear
-                    .frame(width: 44, height: 44)
-                    .contentShape(Rectangle())
-                    .onTapGesture(perform: onDecrement)
-                Spacer()
-                Color.clear
-                    .frame(width: 44, height: 44)
-                    .contentShape(Rectangle())
-                    .onTapGesture(perform: onIncrement)
-            }
-        }
     }
 
     @ViewBuilder
