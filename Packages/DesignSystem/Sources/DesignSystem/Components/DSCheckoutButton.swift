@@ -1,5 +1,5 @@
 //
-//  CheckoutButton.swift
+//  DSCheckoutButton.swift
 //  DesignSystem
 //
 //  Итоговая кнопка оформления заказа с суммой и количеством товаров
@@ -9,7 +9,7 @@ import SwiftUI
 
 /// Итоговая кнопка оформления заказа. Показывает сумму и количество товаров слева
 /// и действие «Оформить» справа. При `isExpanded` растягивается на всю ширину.
-public struct CheckoutButton: View {
+public struct DSCheckoutButton: View {
 
     private let action: () -> Void
     private let price: Int
@@ -90,7 +90,7 @@ public struct CheckoutButton: View {
 }
 
 #Preview {
-    CheckoutButton(
+    DSCheckoutButton(
         price: 100,
         count: 4,
         isExpanded: true

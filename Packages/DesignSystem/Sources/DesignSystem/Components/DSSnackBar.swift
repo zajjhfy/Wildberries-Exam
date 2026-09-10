@@ -1,5 +1,5 @@
 //
-//  SnackBar.swift
+//  DSSnackBar.swift
 //  DesignSystem
 //
 //  Снекбар — всплывающее уведомление об ошибке
@@ -8,7 +8,7 @@
 import SwiftUI
 
 /// Всплывающее уведомление (снекбар). Показывает иконку предупреждения и текст.
-public struct SnackBar: View {
+public struct DSSnackBar: View {
 
     private let title: String
 
@@ -42,5 +42,5 @@ public struct SnackBar: View {
 }
 
 #Preview {
-    SnackBar(title: "Не получилось, попробуйте еще раз")
+    DSSnackBar(title: "Не получилось, попробуйте еще раз")
 }

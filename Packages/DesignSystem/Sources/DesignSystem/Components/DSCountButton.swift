@@ -1,5 +1,5 @@
 //
-//  CountButton.swift
+//  DSCountButton.swift
 //  DesignSystem
 //
 //  Кнопка количества товара (степпер «минус / значение / плюс»)
@@ -8,7 +8,7 @@
 import SwiftUI
 
 /// Кнопка количества товара (степпер) — «минус», значение, «плюс».
-public struct CountButton: View {
+public struct DSCountButton: View {
 
     private let count: Int
     private let onIncrement: () -> Void
@@ -52,7 +52,7 @@ public struct CountButton: View {
 }
 
 #Preview {
-    CountButton(
+    DSCountButton(
         count: 1,
         onDecrement: {},
         onIncrement: {}

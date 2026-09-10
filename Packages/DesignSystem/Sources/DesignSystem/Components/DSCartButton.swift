@@ -1,5 +1,5 @@
 //
-//  CartButton.swift
+//  DSCartButton.swift
 //  DesignSystem
 //
 //  Кнопка добавления товара в корзину с ценой и счётчиком
@@ -10,7 +10,7 @@ import SwiftUI
 /// Кнопка добавления товара в корзину с отображением цены.
 /// - Если товара в корзине нет (`count == 0`) — показывает цену и «плюс».
 /// - Если товар добавлен (`count > 0`) — показывает «минус», цену и «плюс».
-public struct CartButton: View {
+public struct DSCartButton: View {
 
     private let price: Int
     private let count: Int
@@ -101,7 +101,7 @@ public struct CartButton: View {
 }
 
 #Preview {
-    CartButton(
+    DSCartButton(
         price: 150,
         count: 1,
         onDecrement: {},
