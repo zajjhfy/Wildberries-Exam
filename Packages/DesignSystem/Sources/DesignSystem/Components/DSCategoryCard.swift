@@ -65,11 +65,11 @@ public struct DSCategoryCard: View {
     ) {
         DSCategoryCard(
             title: "Фермерские товары",
-            imageURL: "https://picsum.photos/200/200"
+            imageURL: "https://eat-and-pay.t02.ru/uploads/eats-jxl/bread.jxl"
         )
         DSCategoryCard(
             title: "Напитки",
-            imageURL: "https://picsum.photos/200/200"
+            imageURL: "https://eat-and-pay.t02.ru/uploads/eats-jxl/bread.jxl"
         )
     }
     .padding()
