@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import ImageIO
 
 /// Асинхронное изображение с кэшированием в памяти.
 /// - Пока грузится — показывает `ProgressView`.
@@ -78,15 +79,25 @@ actor DSImageCache {
     private func fetch(from urlString: String) async -> UIImage? {
         guard let url = URL(string: urlString) else { return nil }
         guard let (data, _) = try? await URLSession.shared.data(from: url) else { return nil }
-        guard let image = UIImage(data: data) else { return nil }
+        guard let image = decode(data) else { return nil }
         cache.setObject(image, forKey: urlString as NSString)
         return image
+    }
+
+    /// Декодирует данные в UIImage через ImageIO.
+    /// Используем `CGImageSource`, а не `UIImage(data:)`, потому что тот
+    /// не умеет декодировать JPEG XL (формат `jxl`), который отдаёт бэкенд.
+    private func decode(_ data: Data) -> UIImage? {
+        guard let source = CGImageSourceCreateWithData(data as CFData, nil),
+              let cgImage = CGImageSourceCreateImageAtIndex(source, 0, nil)
+        else { return nil }
+        return UIImage(cgImage: cgImage)
     }
 }
 
 #Preview {
     DSAsyncImage(
-        urlString: "https://picsum.photos/200/200",
+        urlString: "https://eat-and-pay.t02.ru/uploads/eats-jxl/bread.jxl",
         content: { image in
             image
                 .resizable()
