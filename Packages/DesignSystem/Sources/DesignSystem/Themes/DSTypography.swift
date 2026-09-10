@@ -69,4 +69,9 @@ public enum DSTypography {
 
     /// Текст основной кнопки `DSButton` (24, semibold).
     public static let buttonTitle: Font = .system(size: 24, weight: .semibold)
+
+    // MARK: - Search
+
+    /// Текст кнопки поиска (20, semibold).
+    public static let searchButtonTitle: Font = .system(size: 20, weight: .semibold)
 }
