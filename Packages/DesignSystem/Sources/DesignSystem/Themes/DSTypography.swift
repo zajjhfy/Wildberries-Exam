@@ -69,4 +69,18 @@ public enum DSTypography {
 
     /// Текст основной кнопки `DSButton` (24, semibold).
     public static let buttonTitle: Font = .system(size: 24, weight: .semibold)
+
+    // MARK: - Product / Cart
+
+    /// Цена товара в кнопке добавления в корзину (14, bold).
+    public static let price: Font = .system(size: 14, weight: .bold)
+
+    /// Иконки степпера «плюс/минус» в кнопках количества товара (16, bold).
+    public static let stepperIcon: Font = .system(size: 16, weight: .bold)
+
+    /// Крупная цена в итоговой кнопке оформления заказа (18, semibold).
+    public static let summaryPrice: Font = .system(size: 18, weight: .semibold)
+
+    /// Текст действия в итоговой кнопке оформления заказа (20, semibold).
+    public static let actionTitle: Font = .system(size: 20, weight: .semibold)
 }
