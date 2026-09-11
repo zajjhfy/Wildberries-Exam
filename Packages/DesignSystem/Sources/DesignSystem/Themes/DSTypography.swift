@@ -16,7 +16,7 @@ public enum DSTypography {
     // MARK: - Headlines
 
     /// Название продукта в карточке товара (14, bold).
-    public static let cardTitle: Font = .system(size: 14, weight: .bold)
+    public static let cardTitle: Font = .system(size: 14, weight: .regular)
 
     /// Заголовок на деталях карточки товара (26, bold).
     public static let cardDetailsTitle: Font = .system(size: 26, weight: .bold)
