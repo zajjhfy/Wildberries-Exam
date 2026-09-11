@@ -13,6 +13,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		A6E614897000000000000001 /* App.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = WildberriesExam/Config/App.xcconfig; sourceTree = SOURCE_ROOT; };
 		CC397FB73050A6EE00EF8B37 /* WildberriesExam.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = WildberriesExam.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -20,6 +21,9 @@
 		CC39805C3050ABC900EF8B37 /* Exceptions for "WildberriesExam" folder in "WildberriesExam" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				Config/App.xcconfig,
+				Config/Secrets.example.xcconfig,
+				Config/Secrets.xcconfig,
 				Info.plist,
 			);
 			target = CC397FB63050A6EE00EF8B37 /* WildberriesExam */;
@@ -302,6 +306,7 @@
 		};
 		CC397FC33050A6EF00EF8B37 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = A6E614897000000000000001 /* App.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -341,6 +346,7 @@
 		};
 		CC397FC43050A6EF00EF8B37 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = A6E614897000000000000001 /* App.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;

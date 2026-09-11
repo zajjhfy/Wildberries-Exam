@@ -13,13 +13,17 @@ let package = Package(
             targets: ["BusinessLogic"]
         ),
     ],
+    dependencies: [
+        .package(path: "../NetworkPackage"),
+    ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
         // Targets can depend on other targets in this package and products from dependencies.
         .target(
-            name: "BusinessLogic"
+            name: "BusinessLogic",
+            dependencies: ["NetworkPackage"]
         ),
-
+        .testTarget(name: "BusinessLogicTests", dependencies: ["BusinessLogic", "NetworkPackage"]),
     ],
     swiftLanguageModes: [.v6]
 )
