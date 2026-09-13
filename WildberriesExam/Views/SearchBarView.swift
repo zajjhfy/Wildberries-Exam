@@ -30,22 +30,9 @@ struct SearchBarView: View {
                 DSSearchBar(searchText: $searchText, isFocused: $isFocused, action: onSubmit)
                     .transition(.opacity.combined(with: .scale(scale: 0.95, anchor: .leading)))
 
-                Button(action: {
+                closeButton {
                     collapse()
-                }, label: {
-                    RoundedRectangle(cornerRadius: 12)
-                        .overlay {
-                            Image(systemName: "xmark")
-                                .scaledToFit()
-                                .frame(width: 30, height: 30)
-                                .font(DSTypography.searchButtonTitle)
-                                .foregroundStyle(.black)
-                        }
-                        .frame(width: 50, height: 50)
-                        .foregroundStyle(.primary)
-                })
-                .buttonStyle(.plain)
-                .transition(.opacity)
+                }
             } else {
                 DSSearchButton {
                     expand()
@@ -59,6 +46,30 @@ struct SearchBarView: View {
 }
 
 extension SearchBarView {
+    private func closeButton(_ action: @escaping () -> Void) -> some View {
+        Button(action: {
+            action()
+        }, label: {
+            RoundedRectangle(cornerRadius: 12)
+                .overlay {
+                    Image(systemName: "xmark")
+                        .scaledToFit()
+                        .frame(width: 30, height: 30)
+                        .font(DSTypography.searchButtonTitle)
+                        .foregroundStyle(.black)
+                }
+                .frame(width: 55, height: 55)
+                .foregroundStyle(DSColors.searchBackground)
+                .overlay {
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(DSColors.textSecondary.opacity(0.3), lineWidth: 1)
+                }
+        })
+        .buttonStyle(.plain)
+        .transition(.opacity)
+    }
+    
+    
     private func expand() {
         isSearching = true
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {

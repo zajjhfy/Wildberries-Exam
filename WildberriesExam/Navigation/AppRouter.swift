@@ -19,7 +19,7 @@ enum Tabs: Hashable, CaseIterable {
 }
 
 enum Route: Hashable {
-    
+    case categories
 }
 
 enum Sheet: Identifiable {
