@@ -15,7 +15,7 @@ public struct DSCloseMapButton: View {
 
     public init(
         action: @escaping () -> Void,
-        color: Color = .gray
+        color: Color = Color.secondary
     ) {
         self.action = action
         self.color = color
@@ -34,7 +34,7 @@ public struct DSCloseMapButton: View {
                     .rotationEffect(.degrees(-45))
             }
             .frame(width: 40, height: 40)
-            .background(.white)
+            .background(DSColors.screenBackground)
             .contentShape(Rectangle())
         }
         .clipShape(RoundedRectangle(cornerRadius: 12))
@@ -46,4 +46,11 @@ public struct DSCloseMapButton: View {
 #Preview {
     DSCloseMapButton() {}
         .padding()
+}
+
+#Preview("Тёмная") {
+    DSCloseMapButton() {}
+        .padding()
+        .background(DSColors.screenBackground)
+        .preferredColorScheme(.dark)
 }

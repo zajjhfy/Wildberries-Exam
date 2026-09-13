@@ -105,25 +105,25 @@ public struct DSButton: View {
         case .light:
             return DSColors.lightGradient
         case .white:
-            return .linearGradient(colors: [.white], startPoint: .leading, endPoint: .trailing)
+            return .linearGradient(colors: [DSColors.screenBackground], startPoint: .leading, endPoint: .trailing)
         case .inputAddress:
-            return .linearGradient(colors: [.white], startPoint: .leading, endPoint: .trailing)
+            return .linearGradient(colors: [DSColors.screenBackground], startPoint: .leading, endPoint: .trailing)
         }
     }
 
     private func getForeground(style: Style) -> Color {
         if disabled {
-            return .gray
+            return Color.secondary
         }
         switch style {
         case .accent:
             return .white
         case .light:
-            return .black
+            return Color.primary
         case .white:
             return DSColors.accent
         case .inputAddress:
-            return .black
+            return Color.primary
         }
     }
 
@@ -166,4 +166,15 @@ public struct DSButton: View {
 #Preview {
     DSButton() {}
         .padding()
+}
+
+#Preview("Тёмная") {
+    VStack(spacing: 12) {
+        DSButton(action: {}, buttonTitle: "В корзину")
+        DSButton(action: {}, buttonTitle: "Написать отзыв", style: .light)
+        DSButton(action: {}, buttonTitle: "Ввести другой", style: .inputAddress)
+        DSButton(action: {}, buttonTitle: "Заблокирована", disabled: true)
+    }
+    .padding()
+    .preferredColorScheme(.dark)
 }

@@ -104,3 +104,26 @@ public struct DSActiveOrderView: View {
     )
     .padding()
 }
+
+#Preview("Тёмная") {
+    DSActiveOrderView(
+        items: [
+            DSOrderItem(
+                id: "1",
+                imageURL: "https://eat-and-pay.t02.ru/uploads/eats-jxl/echpochmak.jxl",
+                name: "Огурец в тесте",
+                weightText: "100 г"
+            ),
+            DSOrderItem(
+                id: "2",
+                imageURL: "https://eat-and-pay.t02.ru/uploads/eats-jxl/bread.jxl",
+                name: "Хлеб",
+                weightText: "300 г"
+            )
+        ],
+        addressLine: "Москва, ул. Пушкина, 1"
+    )
+    .padding()
+    .background(DSColors.screenBackground)
+    .preferredColorScheme(.dark)
+}

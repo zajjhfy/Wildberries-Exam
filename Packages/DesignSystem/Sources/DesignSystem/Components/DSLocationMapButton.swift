@@ -15,7 +15,7 @@ public struct DSLocationMapButton: View {
 
     public init(
         action: @escaping () -> Void,
-        color: Color = .black
+        color: Color = Color.primary
     ) {
         self.action = action
         self.color = color
@@ -27,7 +27,7 @@ public struct DSLocationMapButton: View {
                 .font(.system(size: 18, weight: .semibold))
                 .foregroundStyle(color)
                 .frame(width: 40, height: 40)
-                .background(.white)
+                .background(DSColors.screenBackground)
                 .contentShape(Rectangle())
         }
         .clipShape(RoundedRectangle(cornerRadius: 12))
@@ -39,4 +39,11 @@ public struct DSLocationMapButton: View {
 #Preview {
     DSLocationMapButton() {}
         .padding()
+}
+
+#Preview("Тёмная") {
+    DSLocationMapButton() {}
+        .padding()
+        .background(DSColors.screenBackground)
+        .preferredColorScheme(.dark)
 }

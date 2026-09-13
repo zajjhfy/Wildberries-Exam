@@ -62,7 +62,7 @@ public struct DSCompletedOrderView: View {
     private var attributedText: AttributedString {
         var totalItemsText = AttributedString("\(totalItems) \(productDeclension(for: totalItems))\n")
         totalItemsText.font = DSTypography.descriptionTitle
-        totalItemsText.foregroundColor = .gray
+        totalItemsText.foregroundColor = Color.secondary
 
         var result = AttributedString("\(totalPrice) ₽ ")
         result.font = DSTypography.descriptionTitle
@@ -177,4 +177,23 @@ public struct DSCompletedOrderView: View {
         deliveryDate: "24 августа в 08:31"
     )
     .padding()
+}
+
+#Preview("Тёмная") {
+    DSCompletedOrderView(
+        items: (1...12).map { index in
+            DSOrderItem(
+                id: "\(index)",
+                imageURL: "https://eat-and-pay.t02.ru/uploads/eats-jxl/echpochmak.jxl",
+                name: "Огурец в тесте",
+                weightText: "100 г"
+            )
+        },
+        totalPrice: 100,
+        totalItems: 12,
+        deliveryDate: "24 августа в 08:31"
+    )
+    .padding()
+    .background(DSColors.screenBackground)
+    .preferredColorScheme(.dark)
 }

@@ -25,7 +25,7 @@ public struct DSSelectMapAddressButton: View {
                 .foregroundStyle(DSColors.textPrimary)
                 .padding(.horizontal, 12)
                 .padding(.vertical, 8)
-                .background(.white)
+                .background(DSColors.screenBackground)
                 .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
@@ -38,4 +38,11 @@ public struct DSSelectMapAddressButton: View {
 #Preview {
     DSSelectMapAddressButton(onTap: {})
         .padding()
+}
+
+#Preview("Тёмная") {
+    DSSelectMapAddressButton(onTap: {})
+        .padding()
+        .background(DSColors.screenBackground)
+        .preferredColorScheme(.dark)
 }

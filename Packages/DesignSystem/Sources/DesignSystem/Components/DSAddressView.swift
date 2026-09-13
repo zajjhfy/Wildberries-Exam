@@ -88,3 +88,13 @@ public struct DSAddressView: View {
     DSAddressView(addressText: "Москва, ул. Пушкина, 1", userInitial: "И", isCart: true)
         .padding()
 }
+
+#Preview("Тёмная") {
+    VStack(spacing: 12) {
+        DSAddressView(addressText: "Москва, ул. Пушкина, 1", userInitial: "И")
+        DSAddressView(addressText: "Москва, ул. Пушкина, 1", userInitial: "И", isCart: true)
+    }
+    .padding()
+    .background(DSColors.screenBackground)
+    .preferredColorScheme(.dark)
+}

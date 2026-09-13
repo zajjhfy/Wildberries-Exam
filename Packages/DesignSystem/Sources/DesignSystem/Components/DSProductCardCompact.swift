@@ -72,3 +72,21 @@ public struct DSProductCardCompact: View {
     }
     .padding()
 }
+
+#Preview("Тёмная") {
+    HStack(spacing: 12) {
+        DSProductCardCompact(
+            imageURL: "https://eat-and-pay.t02.ru/uploads/eats-jxl/echpochmak.jxl",
+            name: "Огурец в тесте",
+            weightText: "100 г"
+        )
+        DSProductCardCompact(
+            imageURL: "https://eat-and-pay.t02.ru/uploads/eats-jxl/bread.jxl",
+            name: "Хлеб",
+            weightText: "300 г"
+        )
+    }
+    .padding()
+    .background(DSColors.screenBackground)
+    .preferredColorScheme(.dark)
+}

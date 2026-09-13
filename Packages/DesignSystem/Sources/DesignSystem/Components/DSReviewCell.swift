@@ -40,7 +40,7 @@ public struct DSReviewCell: View {
             HStack(spacing: 2) {
                 ForEach(1...5, id: \.self) { star in
                     Image(systemName: "star.fill")
-                        .foregroundStyle(star <= rating ? .black : DSColors.textSecondary)
+                        .foregroundStyle(star <= rating ? Color.primary : DSColors.textSecondary)
                         .font(.system(size: 12))
                 }
                 Text("\(author),")
@@ -72,4 +72,16 @@ public struct DSReviewCell: View {
         content: "Отличный товар, рекомендую!"
     )
     .padding()
+}
+
+#Preview("Тёмная") {
+    DSReviewCell(
+        author: "Иван",
+        rating: 3,
+        dateText: "13 сентября 2026",
+        content: "Нормальный товар."
+    )
+    .padding()
+    .background(DSColors.screenBackground)
+    .preferredColorScheme(.dark)
 }

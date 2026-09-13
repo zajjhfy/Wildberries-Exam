@@ -46,3 +46,10 @@ public struct DSSearchButton: View {
     DSSearchButton() {}
         .padding()
 }
+
+#Preview("Тёмная") {
+    DSSearchButton() {}
+        .padding()
+        .background(DSColors.screenBackground)
+        .preferredColorScheme(.dark)
+}

@@ -48,16 +48,16 @@ public struct DSFormField: View {
     public var body: some View {
         Section(header: Text(title)
             .font(DSTypography.caption)
-            .foregroundStyle(.gray)
+            .foregroundStyle(Color.secondary)
             .padding(.top, topPadding)) {
             HStack(spacing: 8) {
                 if showsLock {
                     Image(.lock)
-                        .foregroundStyle(.gray)
+                        .foregroundStyle(Color.secondary)
                 }
                 TextField(placeholder, text: $text)
                     .disabled(isDisabled)
-                    .foregroundStyle(isDisabled ? .gray : .black)
+                    .foregroundStyle(isDisabled ? Color.secondary : Color.primary)
             }
         }
     }
@@ -78,4 +78,20 @@ public struct DSFormField: View {
         DSFormField("День рождения", text: .constant("13.09.1998"))
     }
     .padding(.horizontal, 12)
+}
+
+#Preview("Тёмная") {
+    VStack(alignment: .leading) {
+        DSFormField("Имя", text: .constant("Иван"))
+        Divider()
+        DSFormField(
+            "Телефон",
+            placeholder: "+7 900 000-00-00",
+            text: .constant("+7 900 000-00-00"),
+            isDisabled: true,
+            showsLock: true
+        )
+    }
+    .padding(.horizontal, 12)
+    .preferredColorScheme(.dark)
 }

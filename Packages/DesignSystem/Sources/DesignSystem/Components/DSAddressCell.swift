@@ -77,7 +77,7 @@ public struct DSAddressCell: View {
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(isSelected ? DSColors.lightGradient : .linearGradient(colors: [.white], startPoint: .leading, endPoint: .trailing))
+        .background(isSelected ? DSColors.lightGradient : .linearGradient(colors: [DSColors.screenBackground], startPoint: .leading, endPoint: .trailing))
         .cornerRadius(12)
         .padding(.horizontal, 12)
     }
@@ -102,4 +102,25 @@ public struct DSAddressCell: View {
         intercomCode: "15809"
     )
     .padding()
+}
+
+#Preview("Не выбранная · тёмная") {
+    VStack(spacing: 12) {
+        DSAddressCell(
+            addressLine: "Новая Басманная ул., 35 ст1, 59",
+            floor: "3",
+            entrance: "4",
+            intercomCode: "15809",
+            isSelected: true
+        )
+        DSAddressCell(
+            addressLine: "Большая Никитская ул., 12",
+            floor: "1",
+            entrance: "2",
+            intercomCode: "901"
+        )
+    }
+    .padding()
+    .background(DSColors.screenBackground)
+    .preferredColorScheme(.dark)
 }

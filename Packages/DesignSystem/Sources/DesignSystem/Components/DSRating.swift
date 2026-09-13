@@ -101,3 +101,15 @@ public struct DSRating: View {
     }
     .padding()
 }
+
+#Preview("Тёмная") {
+    VStack(spacing: 16) {
+        DSRating(rating: 4.5)
+        DSRating { rating in
+            print(rating)
+        }
+    }
+    .padding()
+    .background(DSColors.screenBackground)
+    .preferredColorScheme(.dark)
+}
