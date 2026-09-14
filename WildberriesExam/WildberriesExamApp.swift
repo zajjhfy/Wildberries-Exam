@@ -9,7 +9,6 @@ import SwiftUI
 import DesignSystem
 import BusinessLogic
 
-#warning("Design system: Add basket.fill")
 @main
 struct WildberriesExamApp: App {
     @StateObject var router = AppRouter()
@@ -21,12 +20,14 @@ struct WildberriesExamApp: App {
     
     var body: some Scene {
         WindowGroup {
-            TabView(selection: $router.selectedTab) {
-                Tab("Каталог", systemImage: "basket.fill", value: Tabs.main) {
-                    MainView(viewModel: CatalogViewModel(service: appDependencies.catalogService))
-                }
+            NavigationStack(path: $router.path) {
+                MainView(viewModel: CatalogViewModel(service: appDependencies.catalogService))
+                    .navigationDestination(for: Route.self, destination: { route in
+                        destination(for: route)
+                    })
             }
             .environmentObject(router)
+            
         }
     }
 }
@@ -37,6 +38,13 @@ extension WildberriesExamApp {
             return try AppDependencies()
         } catch {
             fatalError(error.localizedDescription)
+        }
+    }
+    
+    private func destination(for route: Route) -> some View {
+        switch route {
+        case .category(let id):
+            CatalogProductsView(id: id, viewModel: CatalogViewModel(service: appDependencies.catalogService))
         }
     }
 }

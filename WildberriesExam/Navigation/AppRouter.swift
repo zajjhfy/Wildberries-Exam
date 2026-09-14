@@ -14,12 +14,8 @@
 import SwiftUI
 import Combine
 
-enum Tabs: Hashable, CaseIterable {
-    case main
-}
-
 enum Route: Hashable {
-    case categories
+    case category(id: String)
 }
 
 enum Sheet: Identifiable {
@@ -31,33 +27,22 @@ enum Sheet: Identifiable {
 }
 
 enum SheetRoute: Hashable {
+    
 }
 
 @MainActor
 final class AppRouter: ObservableObject {
-
-    @Published var paths: [Tabs: NavigationPath] = Dictionary(
-        uniqueKeysWithValues: Tabs.allCases.map { ($0, NavigationPath()) }
-    )
-
-    @Published var selectedTab: Tabs = .main
+    @Published var path = NavigationPath()
 
     @Published var presentedSheet: Sheet?
     @Published var sheetPath = NavigationPath()
     
     // in any tab path modification
     
-    func push(_ route: Route, in tab: Tabs) { paths[tab]?.append(route) }
-    func pop(in tab: Tabs) { paths[tab]?.pop() }
-    func popToRoot(in tab: Tabs) { paths[tab]?.popToRoot() }
-    func popTo(count: Int, in tab: Tabs) { paths[tab]?.popTo(count) }
-    
-    // in current tab path modification
-    
-    func push(_ route: Route) { push(route, in: selectedTab) }
-    func pop() { pop(in: selectedTab) }
-    func popToRoot() { popToRoot(in: selectedTab) }
-    func popTo(count: Int) { popTo(count: count, in: selectedTab) }
+    func push(_ route: Route) { path.append(route) }
+    func pop() { path.pop() }
+    func popToRoot() { path.popToRoot() }
+    func popTo(_ target: Int) { path.popTo(target) }
     
     // sheet related
     

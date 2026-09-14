@@ -10,9 +10,6 @@ import BusinessLogic
 import DesignSystem
 
 struct CatalogView: View {
-    @State var viewModel: CatalogViewModel
-    @State private var selectedTab: Tab = .forYou
-    
     enum Tab: Int, CaseIterable {
         case forYou, catalog, discounts, favorites, orderedBefore
         
@@ -27,13 +24,16 @@ struct CatalogView: View {
         }
     }
     
-    @State private var isNearBottom = false
-    private var prefetchThreshold: CGFloat = 400
+    @EnvironmentObject var router: AppRouter
+    @State private var viewModel: CatalogViewModel
+    @State private var selectedTab: Tab
     
-    init(viewModel: CatalogViewModel, isNearBottom: Bool = false, prefetchThreshold: CGFloat = 400) {
+    private var prefetchThreshold: CGFloat
+    
+    init(viewModel: CatalogViewModel) {
         self.viewModel = viewModel
-        self.isNearBottom = isNearBottom
-        self.prefetchThreshold = prefetchThreshold
+        self.selectedTab = .forYou
+        self.prefetchThreshold = 400
     }
     
     var body: some View {
@@ -50,22 +50,18 @@ struct CatalogView: View {
             }
             
             if viewModel.state == .loading {
-                Spacer()
-                ProgressView()
-                Spacer()
+                loadingState()
             } else if case let .failed(error) = viewModel.state {
-                Spacer()
-                Text(error)
-                    .font(DSTypography.caption)
-                Spacer()
+                errorState(error)
             } else {
                 ScrollView {
-                    
                     switch selectedTab {
                     case .forYou:
                         products()
                     case .catalog:
-                        dynamicCatalog()
+                        catalog(selectedCategoryAction: { id in
+                            router.push(.category(id: id))
+                        })
                     case .discounts:
                         blank()
                     case .favorites:
@@ -73,7 +69,6 @@ struct CatalogView: View {
                     case .orderedBefore:
                         blank()
                     }
-
                 }
                 .contentMargins(.bottom, 74, for: .scrollContent)
                 .onScrollGeometryChange(for: Bool.self) { geometry in
@@ -89,7 +84,6 @@ struct CatalogView: View {
         .onChange(of: selectedTab) { prev, now in
             if now == .forYou || now == .catalog {
                 Task {
-                    await viewModel.selectCategory(nil)
                     await viewModel.refresh()
                 }
             }
@@ -101,32 +95,40 @@ struct CatalogView: View {
 }
 
 extension CatalogView {
+    @ViewBuilder
+    private func loadingState() -> some View {
+        Spacer()
+        ProgressView()
+        Spacer()
+    }
+    
+    @ViewBuilder
+    private func errorState(_ errorDescription: String) -> some View {
+        Spacer()
+        Text(errorDescription)
+            .font(DSTypography.caption)
+        Spacer()
+    }
+    
     private func blank() -> some View {
         Text("Тут пока ничего нет :(")
             .font(DSTypography.caption)
     }
     
-    @ViewBuilder
-    private func dynamicCatalog() -> some View {
-        if viewModel.selectedCategoryID != nil {
-            products()
-        } else {
-            catalog()
-        }
-    }
-    
-    private func catalog() -> some View {
+    private func catalog(selectedCategoryAction: @escaping (String) -> Void) -> some View {
         let columns = Array(repeating: GridItem(.flexible()), count: 3)
         
-        return LazyVGrid(columns: columns) {
+        return LazyVGrid(columns: columns, spacing: 8) {
             ForEach(viewModel.categories) { category in
-                DSCategoryCard(category)
-                    .onTapGesture {
-                        Task { await viewModel.selectCategory(category.id) }
-                    }
+                Button {
+                    selectedCategoryAction(category.id)
+                } label: {
+                    DSCategoryCard(category)
+                }
+                .buttonStyle(.plain)
             }
-            .padding()
         }
+        .padding(.horizontal, 12)
     }
     
     private func products() -> some View {
@@ -140,7 +142,6 @@ extension CatalogView {
                               onToggleFavorite: {})
             }
         }
-        .padding()
     }
 }
 

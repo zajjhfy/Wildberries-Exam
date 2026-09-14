@@ -8,7 +8,6 @@
 import SwiftUI
 import DesignSystem
 
-#warning("DesignSystem: add xmark. Можно дернуть SearchBarView и добавить его в DesignSystem")
 struct SearchBarView: View {
     @State private var isSearching = false
     @State private var isFocused = false

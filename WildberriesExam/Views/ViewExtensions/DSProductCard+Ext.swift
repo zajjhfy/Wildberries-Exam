@@ -23,11 +23,6 @@ extension DSProductCard {
             urlString = "https://eat-and-pay.t02.ru/uploads/eats-jxl/echpochmak.jxl"
         }
         
-        /*
-         Почему imageURL не опционал или почему CatalogProduct imageURL: URL? а не String?
-         Согласуйте типы данных друг с другом, чтобы мне не нужно было String(Int()) и т.д.
-         */
-        
         self.init(imageURL: urlString, name: product.name, weightText: String(Int(product.weight)), price: product.price, rating: product.rating, reviewCount: product.reviewCount, isFavorite: product.isFavorite, quantity: 0, onToggleFavorite: onToggleFavorite, onIncrement: onIncrement, onDecrement: onDecrement)
     }
 }
