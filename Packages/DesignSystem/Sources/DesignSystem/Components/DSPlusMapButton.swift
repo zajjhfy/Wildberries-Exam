@@ -15,7 +15,7 @@ public struct DSPlusMapButton: View {
 
     public init(
         action: @escaping () -> Void,
-        color: Color = .black
+        color: Color = Color.primary
     ) {
         self.action = action
         self.color = color
@@ -33,7 +33,7 @@ public struct DSPlusMapButton: View {
                     .frame(width: 16, height: 2)
             }
             .frame(width: 40, height: 40)
-            .background(.white)
+            .background(DSColors.screenBackground)
             .contentShape(Rectangle())
         }
         .clipShape(RoundedRectangle(cornerRadius: 12))
@@ -45,4 +45,11 @@ public struct DSPlusMapButton: View {
 #Preview {
     DSPlusMapButton() {}
         .padding()
+}
+
+#Preview("Тёмная") {
+    DSPlusMapButton() {}
+        .padding()
+        .background(DSColors.screenBackground)
+        .preferredColorScheme(.dark)
 }

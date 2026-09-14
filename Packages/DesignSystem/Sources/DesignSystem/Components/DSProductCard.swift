@@ -179,3 +179,23 @@ public struct DSProductCard: View {
     .frame(width: 200)
     .padding()
 }
+
+#Preview("Тёмная") {
+    DSProductCard(
+        imageURL: "https://eat-and-pay.t02.ru/uploads/eats-jxl/echpochmak.jxl",
+        name: "Огурец в тесте",
+        weightText: "80 г",
+        price: 750,
+        rating: 4.5,
+        reviewCount: 1356,
+        isFavorite: true,
+        quantity: 3,
+        onToggleFavorite: {},
+        onIncrement: {},
+        onDecrement: {}
+    )
+    .frame(width: 200)
+    .padding()
+    .background(DSColors.screenBackground)
+    .preferredColorScheme(.dark)
+}

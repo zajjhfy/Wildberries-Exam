@@ -98,3 +98,23 @@ public struct DSCartButton: View {
     )
     .padding()
 }
+
+#Preview("Тёмная") {
+    HStack(spacing: 12) {
+        DSCartButton(
+            price: 150,
+            count: 0,
+            onDecrement: {},
+            onIncrement: {}
+        )
+        DSCartButton(
+            price: 150,
+            count: 1,
+            onDecrement: {},
+            onIncrement: {}
+        )
+    }
+    .padding()
+    .background(DSColors.screenBackground)
+    .preferredColorScheme(.dark)
+}

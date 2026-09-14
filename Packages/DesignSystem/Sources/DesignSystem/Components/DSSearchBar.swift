@@ -60,3 +60,13 @@ public struct DSSearchBar: View {
     ) {}
         .padding()
 }
+
+#Preview("Тёмная") {
+    DSSearchBar(
+        searchText: .constant(""),
+        isFocused: .constant(false)
+    ) {}
+        .padding()
+        .background(DSColors.screenBackground)
+        .preferredColorScheme(.dark)
+}

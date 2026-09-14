@@ -84,3 +84,10 @@ public struct Triangle: Shape {
 #Preview {
     DSMapPin()
 }
+
+#Preview("Тёмная") {
+    DSMapPin()
+        .padding()
+        .background(DSColors.screenBackground)
+        .preferredColorScheme(.dark)
+}

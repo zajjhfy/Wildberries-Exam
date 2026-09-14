@@ -24,7 +24,7 @@ public struct DSDeleteAddressButton: View {
                 .font(.system(size: 18, weight: .semibold))
                 .foregroundStyle(.red)
                 .frame(width: 40, height: 40)
-                .background(.white)
+                .background(DSColors.screenBackground)
                 .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
@@ -37,4 +37,11 @@ public struct DSDeleteAddressButton: View {
 #Preview {
     DSDeleteAddressButton() {}
         .padding()
+}
+
+#Preview("Тёмная") {
+    DSDeleteAddressButton() {}
+        .padding()
+        .background(DSColors.screenBackground)
+        .preferredColorScheme(.dark)
 }

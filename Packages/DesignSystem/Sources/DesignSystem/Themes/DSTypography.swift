@@ -34,7 +34,7 @@ public enum DSTypography {
     public static let estimationHuge: Font = .system(size: 94, weight: .light)
 
     /// Заголовок описания (20, bold).
-    public static let descriptionTitle: Font = .system(size: 20, weight: .bold)
+    public static let descriptionTitle: Font = .system(size: 20, weight: .medium)
 
     /// Заголовок поиска (18, bold).
     public static let searchTitle: Font = .system(size: 18, weight: .bold)
@@ -45,8 +45,11 @@ public enum DSTypography {
     /// Подзаголовок экрана успеха (22, light).
     public static let reviewSuccessSubtitle: Font = .system(size: 22, weight: .light)
 
+    /// Заголовок автора отзыва / имени в адресной панели (14, medium).
+    public static let authorReviewTitle: Font = .system(size: 14, weight: .medium)
+
     /// Заголовок адреса (17, bold).
-    public static let addressTitle: Font = .system(size: 17, weight: .bold)
+    public static let addressTitle: Font = .system(size: 17, weight: .medium)
 
     /// Заголовок адреса на карте (24, bold).
     public static let addressMapTitle: Font = .system(size: 24, weight: .bold)

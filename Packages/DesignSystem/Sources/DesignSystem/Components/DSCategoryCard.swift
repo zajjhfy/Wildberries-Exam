@@ -74,3 +74,22 @@ public struct DSCategoryCard: View {
     }
     .padding()
 }
+
+#Preview("Тёмная") {
+    LazyVGrid(
+        columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())],
+        spacing: 8
+    ) {
+        DSCategoryCard(
+            title: "Фермерские товары",
+            imageURL: "https://eat-and-pay.t02.ru/uploads/eats-jxl/bread.jxl"
+        )
+        DSCategoryCard(
+            title: "Напитки",
+            imageURL: "https://eat-and-pay.t02.ru/uploads/eats-jxl/bread.jxl"
+        )
+    }
+    .padding()
+    .background(DSColors.screenBackground)
+    .preferredColorScheme(.dark)
+}

@@ -59,3 +59,14 @@ public struct DSCountButton: View {
     )
     .padding()
 }
+
+#Preview("Тёмная") {
+    DSCountButton(
+        count: 1,
+        onDecrement: {},
+        onIncrement: {}
+    )
+    .padding()
+    .background(DSColors.screenBackground)
+    .preferredColorScheme(.dark)
+}

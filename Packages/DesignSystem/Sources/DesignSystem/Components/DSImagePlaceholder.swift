@@ -30,3 +30,10 @@ public struct DSImagePlaceholder: View {
 #Preview {
     DSImagePlaceholder()
 }
+
+#Preview("Тёмная") {
+    DSImagePlaceholder()
+        .frame(width: 200, height: 200)
+        .background(DSColors.screenBackground)
+        .preferredColorScheme(.dark)
+}

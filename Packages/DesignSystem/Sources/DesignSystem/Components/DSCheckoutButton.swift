@@ -97,3 +97,14 @@ public struct DSCheckoutButton: View {
     ) {}
         .padding()
 }
+
+#Preview("Тёмная") {
+    DSCheckoutButton(
+        price: 100,
+        count: 4,
+        isExpanded: true
+    ) {}
+        .padding()
+        .background(DSColors.screenBackground)
+        .preferredColorScheme(.dark)
+}
