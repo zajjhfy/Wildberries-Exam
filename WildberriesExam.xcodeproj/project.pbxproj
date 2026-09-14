@@ -13,7 +13,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		A6E614897000000000000001 /* App.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = WildberriesExam/Config/App.xcconfig; sourceTree = SOURCE_ROOT; };
+		A6E614897000000000000001 /* WildberriesExam/Config/App.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = WildberriesExam/Config/App.xcconfig; sourceTree = SOURCE_ROOT; };
 		CC397FB73050A6EE00EF8B37 /* WildberriesExam.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = WildberriesExam.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -79,6 +79,7 @@
 				CC397FB93050A6EE00EF8B37 /* WildberriesExam */,
 				CCA4FB043050B5E60006C2FD /* Frameworks */,
 				CC397FB83050A6EE00EF8B37 /* Products */,
+				CCA9BFA43056B8450064903A /* Recovered References */,
 			);
 			sourceTree = "<group>";
 		};
@@ -95,6 +96,14 @@
 			children = (
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		CCA9BFA43056B8450064903A /* Recovered References */ = {
+			isa = PBXGroup;
+			children = (
+				A6E614897000000000000001 /* WildberriesExam/Config/App.xcconfig */,
+			);
+			name = "Recovered References";
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -306,7 +315,7 @@
 		};
 		CC397FC33050A6EF00EF8B37 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = A6E614897000000000000001 /* App.xcconfig */;
+			baseConfigurationReference = A6E614897000000000000001 /* WildberriesExam/Config/App.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -346,7 +355,7 @@
 		};
 		CC397FC43050A6EF00EF8B37 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = A6E614897000000000000001 /* App.xcconfig */;
+			baseConfigurationReference = A6E614897000000000000001 /* WildberriesExam/Config/App.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;

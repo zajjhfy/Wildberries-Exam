@@ -29,7 +29,7 @@ public struct DSSearchButton: View {
                     .foregroundStyle(DSColors.textPrimary)
             }
             .background(DSColors.searchBackground)
-            .frame(width: 129, height: 50)
+            .frame(height: 50)
             .clipShape(RoundedRectangle(cornerRadius: 12))
             .overlay(
                 RoundedRectangle(cornerRadius: 12)

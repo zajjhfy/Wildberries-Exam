@@ -44,7 +44,7 @@ public struct DSSearchBar: View {
         .background(DSColors.searchBackground)
         .clipShape(RoundedRectangle(cornerRadius: 12))
         .overlay(
-            RoundedRectangle(cornerRadius: 20)
+            RoundedRectangle(cornerRadius: 12)
                 .stroke(
                     DSColors.textSecondary.opacity(0.3),
                     lineWidth: 1
