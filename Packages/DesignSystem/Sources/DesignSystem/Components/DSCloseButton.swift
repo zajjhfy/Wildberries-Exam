@@ -15,7 +15,7 @@ public struct DSCloseButton: View {
 
     public init(
         action: @escaping () -> Void,
-        color: Color = .gray
+        color: Color = Color.secondary
     ) {
         self.action = action
         self.color = color
@@ -42,4 +42,11 @@ public struct DSCloseButton: View {
 #Preview {
     DSCloseButton() {}
         .padding()
+}
+
+#Preview("Тёмная") {
+    DSCloseButton() {}
+        .padding()
+        .background(DSColors.screenBackground)
+        .preferredColorScheme(.dark)
 }

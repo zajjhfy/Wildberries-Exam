@@ -20,11 +20,11 @@ public struct DSSnackBar: View {
         HStack {
             ZStack {
                 Circle()
-                    .fill(Color.black)
+                    .fill(Color.primary)
                     .frame(width: 24, height: 24)
                 Image(systemName: "exclamationmark")
                     .font(.system(size: 14, weight: .bold))
-                    .foregroundColor(.white)
+                    .foregroundColor(DSColors.screenBackground)
             }
             .padding(.leading, 12)
 
@@ -34,7 +34,7 @@ public struct DSSnackBar: View {
                 .padding(.horizontal, 12)
                 .padding(.vertical, 8)
         }
-        .background(.white)
+        .background(DSColors.screenBackground)
         .clipShape(RoundedRectangle(cornerRadius: 12))
         .shadow(color: Color.black.opacity(0.15), radius: 5, x: 0, y: 4)
         .shadow(color: Color.black.opacity(0.05), radius: 1, x: 0, y: 0)
@@ -43,4 +43,11 @@ public struct DSSnackBar: View {
 
 #Preview {
     DSSnackBar(title: "Не получилось, попробуйте еще раз")
+}
+
+#Preview("Тёмная") {
+    DSSnackBar(title: "Не получилось, попробуйте еще раз")
+        .padding()
+        .background(DSColors.screenBackground)
+        .preferredColorScheme(.dark)
 }

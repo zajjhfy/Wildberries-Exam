@@ -96,3 +96,23 @@ public struct DSTextTabBar: View {
 
     return PreviewWrapper()
 }
+
+#Preview("Тёмная") {
+    struct DarkPreviewWrapper: View {
+        @State private var selectedTab = 0
+
+        var body: some View {
+            VStack {
+                DSTextTabBar(
+                    selectedIndex: $selectedTab,
+                    tabs: ["Для тебя", "Каталог", "Скидки", "Избранное"]
+                )
+                Spacer()
+            }
+            .padding(.top, 16)
+        }
+    }
+
+    return DarkPreviewWrapper()
+        .preferredColorScheme(.dark)
+}

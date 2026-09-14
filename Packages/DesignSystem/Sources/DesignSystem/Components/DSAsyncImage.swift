@@ -98,3 +98,20 @@ actor DSImageCache {
     )
     .frame(width: 200, height: 200)
 }
+
+#Preview("Тёмная") {
+    DSAsyncImage(
+        urlString: "https://eat-and-pay.t02.ru/uploads/eats-jxl/bread.jxl",
+        content: { image in
+            image
+                .resizable()
+                .aspectRatio(contentMode: .fill)
+        },
+        placeholder: {
+            Color(DSColors.cardBackground)
+        }
+    )
+    .frame(width: 200, height: 200)
+    .background(DSColors.screenBackground)
+    .preferredColorScheme(.dark)
+}
