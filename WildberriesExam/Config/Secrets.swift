@@ -6,13 +6,17 @@
 //
 
 import Foundation
+import NetworkPackage
 
 enum Secrets {
     static var apiKey: String {
-        guard let key = Bundle.main.infoDictionary?["API_KEY"] as? String else {
-            fatalError("Api Key not found or couldn't be parsed. Check Secrets.xcconfig")
+        get throws {
+            guard let key = Bundle.main.object(forInfoDictionaryKey: "API_KEY") as? String else {
+                throw NetworkError.missingAPIKey
+            }
+            // Validate the same input as every NetworkPackage consumer.
+            _ = try APIConfiguration(apiKey: key)
+            return key
         }
-        
-        return key
     }
 }
