@@ -5,7 +5,7 @@ import PackageDescription
 
 let package = Package(
     name: "NetworkPackage",
-    platforms: [.iOS(.v18)],
+    platforms: [.iOS(.v18), .macOS(.v14)],
     products: [
         .library(
             name: "NetworkPackage",

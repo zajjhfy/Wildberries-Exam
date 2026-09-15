@@ -10,7 +10,7 @@ public struct DefaultCatalogService: CatalogService {
 
     public func loadCategories() async throws -> [CatalogCategory] {
         try await api.loadCategories().map {
-            CatalogCategory(id: $0.id, name: $0.name, imageURL: imageURL(from: $0.image))
+            CatalogCategory(id: $0.id, name: $0.name, imageURL: validatedImageURL($0.image))
         }
     }
 
@@ -21,7 +21,7 @@ public struct DefaultCatalogService: CatalogService {
                 CatalogProduct(
                     id: $0.id,
                     name: $0.name,
-                    imageURL: imageURL(from: $0.image),
+                    imageURL: validatedImageURL($0.image),
                     price: $0.price,
                     weight: $0.weight,
                     rating: Double($0.rating),
@@ -33,13 +33,5 @@ public struct DefaultCatalogService: CatalogService {
             currentPage: payload.currentPage,
             totalPages: payload.totalPages
         )
-    }
-
-    private func imageURL(from value: String) -> URL? {
-        guard let url = URL(string: value),
-              let scheme = url.scheme?.lowercased(), ["https", "http"].contains(scheme),
-              let host = url.host, !host.isEmpty,
-              url.user == nil, url.password == nil else { return nil }
-        return url
     }
 }
