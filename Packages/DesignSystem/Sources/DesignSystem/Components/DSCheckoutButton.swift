@@ -52,38 +52,42 @@ public struct DSCheckoutButton: View {
 
     public var body: some View {
         Button(action: action) {
-            HStack(spacing: 20) {
+            HStack(spacing: 12) {
                 if isLoading {
                     ProgressView()
                         .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                        .padding(.bottom, 14.5)
-                        .padding(.top, 11.5)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else {
-                    VStack(alignment: .leading) {
-                        Text(price.formatted() + "₽")
-                            .font(DSTypography.summaryPrice)
-                            .padding(.leading, 10)
-                            .padding(.top, 7.5)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(price.formatted() + " ₽")
+                            .font(.system(size: 15, weight: .bold))
+                            .lineLimit(1)
+                            .fixedSize()
+
                         Text(countString(count: count))
-                            .font(DSTypography.cartSubtitle)
-                            .padding(.leading, 10)
-                            .padding(.bottom, 7.5)
+                            .font(.system(size: 12, weight: .regular))
+                            .foregroundStyle(Color.white.opacity(0.85))
+                            .lineLimit(1)
+                            .fixedSize()
                     }
+                    .padding(.leading, 14)
 
                     if isExpanded {
-                        Spacer()
+                        Spacer(minLength: 8)
                     }
+
                     Text("Оформить")
-                        .font(DSTypography.actionTitle)
-                        .padding(.trailing, 18)
-                        .padding(.bottom, 14.5)
-                        .padding(.top, 11.5)
+                        .font(.system(size: 16, weight: .semibold))
+                        .lineLimit(1)
+                        .fixedSize()
+                        .padding(.trailing, 16)
                 }
             }
+            .frame(height: 50)
             .frame(maxWidth: isExpanded ? .infinity : nil)
             .foregroundStyle(.white)
             .background(DSColors.accentGradient)
-            .cornerRadius(12)
+            .clipShape(RoundedRectangle(cornerRadius: 12))
         }
         .disabled(isLoading)
     }

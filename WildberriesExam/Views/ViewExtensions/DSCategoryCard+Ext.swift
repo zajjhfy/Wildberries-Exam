@@ -10,7 +10,7 @@ import DesignSystem
 import BusinessLogic
 
 extension DSCategoryCard {
-    init(_ category: CatalogCategory) {
+    public init(_ category: CatalogCategory) {
         var urlString: String
         
         if let imageURL = category.imageURL {
