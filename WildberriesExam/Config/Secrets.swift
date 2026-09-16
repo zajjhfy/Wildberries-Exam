@@ -14,7 +14,6 @@ enum Secrets {
             guard let key = Bundle.main.object(forInfoDictionaryKey: "API_KEY") as? String else {
                 throw NetworkError.missingAPIKey
             }
-            // Validate the same input as every NetworkPackage consumer.
             _ = try APIConfiguration(apiKey: key)
             return key
         }

@@ -9,77 +9,127 @@ import SwiftUI
 import BusinessLogic
 import DesignSystem
 
-struct CatalogProductsView: View {
+public struct CatalogProductsView: View {
+    @EnvironmentObject private var router: AppRouter
+    @Environment(CartViewModel.self) private var cartViewModel
+    @Environment(FavoritesViewModel.self) private var favoritesViewModel
+
     @State private var viewModel: CatalogViewModel
-    @State private var categoryName: String
-    
     private let id: String
-    private var prefetchThreshold: CGFloat
-    
-    init(id: String, viewModel: CatalogViewModel) {
+    private let title: String
+    private let prefetchThreshold: CGFloat = 200
+
+    public init(id: String, title: String, service: any CatalogService) {
         self.id = id
-        self.viewModel = viewModel
-        self.categoryName = ""
-        self.prefetchThreshold = 200
+        self.title = title
+        _viewModel = State(initialValue: CatalogViewModel(service: service))
     }
-    
-    var body: some View {
-        VStack {
-            if viewModel.state == .loading {
-                loadingState()
-            } else if case let .failed(error) = viewModel.state {
-                errorState(error)
-            } else {
-                ScrollView {
-                    products()
-                }
-                .onScrollGeometryChange(for: Bool.self) { geometry in
-                    let distanceFromBottom = geometry.contentSize.height
-                    - geometry.visibleRect.maxY
-                    return distanceFromBottom < prefetchThreshold
-                } action: { wasNearBottom, isNowNearBottom in
-                    guard isNowNearBottom, !wasNearBottom else { return }
-                    Task { await viewModel.loadNextPage() }
+
+    public var body: some View {
+        ZStack(alignment: .bottom) {
+            VStack(spacing: 0) {
+                if viewModel.state == .loading && viewModel.products.isEmpty {
+                    loadingGrid()
+                } else if case let .failed(error) = viewModel.state, viewModel.products.isEmpty {
+                    errorState(error) {
+                        Task { await viewModel.selectCategory(id) }
+                    }
+                } else {
+                    ScrollView {
+                        productsGrid()
+                            .padding(.bottom, 80)
+                    }
+                    .onScrollGeometryChange(for: Bool.self) { geometry in
+                        let distanceFromBottom = geometry.contentSize.height - geometry.visibleRect.maxY
+                        return distanceFromBottom < prefetchThreshold
+                    } action: { wasNearBottom, isNowNearBottom in
+                        guard isNowNearBottom, !wasNearBottom else { return }
+                        Task { await viewModel.loadNextPage() }
+                    }
                 }
             }
+
+            FloatingBottomBarView()
         }
-        .task {
+        .task(id: id) {
             await viewModel.selectCategory(id)
-            await viewModel.refresh()
-            guard let name = viewModel.categories.first(where: { $0.id == id })?.name else { return }
-            categoryName = name
         }
-        .navigationTitle(categoryName)
-        .navigationBarTitleDisplayMode(.large)
+        .navigationTitle(title)
+        .navigationBarTitleDisplayMode(.inline)
     }
 }
 
 extension CatalogProductsView {
     @ViewBuilder
-    private func loadingState() -> some View {
-        Spacer()
-        ProgressView()
-        Spacer()
+    private func loadingGrid() -> some View {
+        let columns = [
+            GridItem(.flexible(), spacing: 12),
+            GridItem(.flexible(), spacing: 12)
+        ]
+        ScrollView {
+            LazyVGrid(columns: columns, spacing: 16) {
+                ForEach(0..<6, id: \.self) { _ in
+                    ProductCardSkeletonView()
+                }
+            }
+            .padding(.horizontal, 16)
+            .padding(.top, 16)
+        }
     }
-    
+
     @ViewBuilder
-    private func errorState(_ errorDescription: String) -> some View {
+    private func errorState(_ errorDescription: String, retryAction: @escaping () -> Void) -> some View {
         Spacer()
-        Text(errorDescription)
-            .font(DSTypography.caption)
+        VStack(spacing: 8) {
+            Text("Ошибка загрузки")
+                .font(DSTypography.buttonTitle)
+                .foregroundStyle(DSColors.textPrimary)
+            Text(errorDescription)
+                .font(DSTypography.caption)
+                .foregroundStyle(DSColors.textSecondary)
+                .multilineTextAlignment(.center)
+            retryButton(action: retryAction)
+                .padding(.top, 8)
+        }
+        .padding()
         Spacer()
     }
-    
-    private func products() -> some View {
-        let columns = Array(repeating: GridItem(.flexible()), count: 2)
-        
-        return LazyVGrid(columns: columns) {
+
+    private func retryButton(action: @escaping () -> Void) -> some View {
+        Button("Повторить", action: action)
+    }
+
+    private func productsGrid() -> some View {
+        let columns = [
+            GridItem(.flexible(), spacing: 12),
+            GridItem(.flexible(), spacing: 12)
+        ]
+
+        return LazyVGrid(columns: columns, spacing: 16) {
             ForEach(viewModel.products) { product in
-                DSProductCard(product,
-                              onIncrement: {},
-                              onDecrement: {},
-                              onToggleFavorite: {})
+                let isFav = favoritesViewModel.isFavorite(product)
+                let qty = cartViewModel.quantity(for: product.id)
+
+                DSProductCard(
+                    product,
+                    isFavorite: isFav,
+                    quantity: qty,
+                    onToggleFavorite: {
+                        Task { await favoritesViewModel.toggle(product) }
+                    },
+                    onIncrement: {
+                        Task { await cartViewModel.add(productID: product.id) }
+                    },
+                    onDecrement: {
+                        Task { await cartViewModel.remove(productID: product.id) }
+                    }
+                )
+                .onTapGesture {
+                    router.presentSheet(.product(id: product.id))
+                }
             }
         }
+        .padding(.horizontal, 16)
+        .padding(.top, 16)
     }
 }
