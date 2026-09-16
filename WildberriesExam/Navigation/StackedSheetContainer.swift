@@ -25,44 +25,65 @@ struct StackedSheetContainer<Content: View>: View {
             content()
 
             if !router.sheetStack.isEmpty {
-                // 40% Black backdrop
-                Color.black.opacity(0.4)
-                    .ignoresSafeArea()
-                    .transition(.opacity)
-                    .onTapGesture {
-                        router.dismissTopSheet()
-                    }
-                    .zIndex(50)
-
-                // Stacked sheets (LIFO)
-                GeometryReader { geometry in
-                    let screenHeight = geometry.size.height
-                    ForEach(Array(router.sheetStack.enumerated()), id: \.element.id) { index, sheet in
-                        let isTop = index == router.sheetStack.count - 1
-                        let sheetHeight = maxHeight(for: sheet, in: screenHeight)
-
-                        SheetCardWrapper(
-                            isTop: isTop,
-                            height: sheetHeight,
-                            onDismiss: {
-                                router.dismissTopSheet()
-                            }
-                        ) {
-                            sheetView(for: sheet)
-                        }
-                        .zIndex(Double(51 + index))
-                        .frame(maxHeight: .infinity, alignment: .bottom)
-                        .transition(.asymmetric(
-                            insertion: .move(edge: .bottom),
-                            removal: .move(edge: .bottom)
-                        ))
-                    }
+                backdrop {
+                    router.dismissTopSheet()
                 }
-                .ignoresSafeArea(edges: .bottom)
+
+                GeometryReader { geometry in
+                    sheetStackView(screenHeight: geometry.size.height)
+                }
+                .ignoresSafeArea()
                 .zIndex(51)
             }
         }
         .animation(.spring(response: 0.35, dampingFraction: 0.86), value: router.sheetStack)
+    }
+}
+
+extension StackedSheetContainer {
+    private func backdrop(onDismiss: @escaping () -> Void) -> some View {
+        Color.black.opacity(0.4)
+            .ignoresSafeArea()
+            .transition(.opacity)
+            .onTapGesture(perform: onDismiss)
+            .zIndex(50)
+    }
+
+    @ViewBuilder
+    private func sheetStackView(screenHeight: CGFloat) -> some View {
+        ForEach(Array(router.sheetStack.enumerated()), id: \.element.id) { index, sheet in
+            let isTop = index == router.sheetStack.count - 1
+            let sheetHeight = maxHeight(for: sheet, in: screenHeight)
+
+            if sheet.isSuccess {
+                sheetView(for: sheet)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .ignoresSafeArea()
+                    .zIndex(Double(100 + index))
+                    .transition(
+                        .asymmetric(
+                            insertion: .scale(scale: 0.05).combined(with: .opacity),
+                            removal: .scale(scale: 0.05).combined(with: .opacity)
+                        )
+                    )
+            } else {
+                SheetCardWrapper(
+                    isTop: isTop,
+                    height: sheetHeight,
+                    onDismiss: {
+                        router.dismissTopSheet()
+                    }
+                ) {
+                    sheetView(for: sheet)
+                }
+                .zIndex(Double(51 + index))
+                .frame(maxHeight: .infinity, alignment: .bottom)
+                .transition(.asymmetric(
+                    insertion: .move(edge: .bottom),
+                    removal: .move(edge: .bottom)
+                ))
+            }
+        }
     }
 
     private func maxHeight(for sheet: AppSheet, in screenHeight: CGFloat) -> CGFloat {
@@ -90,7 +111,7 @@ struct StackedSheetContainer<Content: View>: View {
         case .cart:
             CartSheet(orderService: appDependencies.orderService, cartStore: appDependencies.cartStore)
         case .orderSuccess:
-            OrderSuccessOverlay()
+            OrderSuccessView()
         case .profile:
             ProfileSheet()
         case .editProfile:

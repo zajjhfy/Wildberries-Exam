@@ -17,7 +17,7 @@ public struct CatalogProductsView: View {
     @State private var viewModel: CatalogViewModel
     private let id: String
     private let title: String
-    private var prefetchThreshold: CGFloat = 200
+    private let prefetchThreshold: CGFloat = 200
 
     public init(id: String, title: String, service: any CatalogService) {
         self.id = id
@@ -31,7 +31,9 @@ public struct CatalogProductsView: View {
                 if viewModel.state == .loading && viewModel.products.isEmpty {
                     loadingGrid()
                 } else if case let .failed(error) = viewModel.state, viewModel.products.isEmpty {
-                    errorState(error)
+                    errorState(error) {
+                        Task { await viewModel.selectCategory(id) }
+                    }
                 } else {
                     ScrollView {
                         productsGrid()
@@ -50,7 +52,6 @@ public struct CatalogProductsView: View {
             FloatingBottomBarView()
         }
         .task(id: id) {
-            // Load category products once without redundant refresh
             await viewModel.selectCategory(id)
         }
         .navigationTitle(title)
@@ -77,7 +78,7 @@ extension CatalogProductsView {
     }
 
     @ViewBuilder
-    private func errorState(_ errorDescription: String) -> some View {
+    private func errorState(_ errorDescription: String, retryAction: @escaping () -> Void) -> some View {
         Spacer()
         VStack(spacing: 8) {
             Text("Ошибка загрузки")
@@ -87,13 +88,15 @@ extension CatalogProductsView {
                 .font(DSTypography.caption)
                 .foregroundStyle(DSColors.textSecondary)
                 .multilineTextAlignment(.center)
-            Button("Повторить") {
-                Task { await viewModel.selectCategory(id) }
-            }
-            .padding(.top, 8)
+            retryButton(action: retryAction)
+                .padding(.top, 8)
         }
         .padding()
         Spacer()
+    }
+
+    private func retryButton(action: @escaping () -> Void) -> some View {
+        Button("Повторить", action: action)
     }
 
     private func productsGrid() -> some View {
@@ -108,12 +111,7 @@ extension CatalogProductsView {
                 let qty = cartViewModel.quantity(for: product.id)
 
                 DSProductCard(
-                    imageURL: product.imageURL?.absoluteString ?? "",
-                    name: product.name,
-                    weightText: "\(Int(product.weight)) г",
-                    price: product.price,
-                    rating: product.rating,
-                    reviewCount: product.reviewCount,
+                    product,
                     isFavorite: isFav,
                     quantity: qty,
                     onToggleFavorite: {

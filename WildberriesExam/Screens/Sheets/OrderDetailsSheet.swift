@@ -20,6 +20,36 @@ public struct OrderDetailsSheet: View {
         self.orderID = orderID
     }
 
+    public var body: some View {
+        VStack(spacing: 0) {
+            header {
+                router.dismissTopSheet()
+            }
+
+            if let order = order {
+                ScrollView(showsIndicators: false) {
+                    VStack(alignment: .leading, spacing: 20) {
+                        addressSection(order: order)
+                        productsList(order: order)
+                        summarySection(order: order)
+
+                        actionButtons(
+                            onReceipt: {},
+                            onRepeat: {
+                                repeatOrder(items: order.items)
+                            }
+                        )
+                    }
+                    .padding(.horizontal, 16)
+                }
+            } else {
+                notFoundView()
+            }
+        }
+    }
+}
+
+extension OrderDetailsSheet {
     private var order: CustomerOrder? {
         ordersViewModel.orders.first(where: { $0.id == orderID })
     }
@@ -31,77 +61,32 @@ public struct OrderDetailsSheet: View {
         return "Доставили\n\(order?.deliveryDateText ?? "недавно")"
     }
 
-    public var body: some View {
-        VStack(spacing: 0) {
-            // Header: Large 2-line title + Close button
-            HStack(alignment: .top) {
-                Text(headerTitle)
-                    .font(.system(size: 32, weight: .bold))
-                    .foregroundStyle(DSColors.textPrimary)
-                    .lineSpacing(2)
+    private func header(onClose: @escaping () -> Void) -> some View {
+        HStack(alignment: .top) {
+            Text(headerTitle)
+                .font(.system(size: 32, weight: .bold))
+                .foregroundStyle(DSColors.textPrimary)
+                .lineSpacing(2)
 
-                Spacer()
+            Spacer()
 
-                DSCloseButton(action: {
-                    router.dismissTopSheet()
-                })
+            DSCloseButton(action: onClose)
                 .padding(.top, 4)
-            }
-            .padding(.horizontal, 16)
-            .padding(.top, 24)
-            .padding(.bottom, 12)
-
-            if let order = order {
-                ScrollView(showsIndicators: false) {
-                    VStack(alignment: .leading, spacing: 20) {
-                        // Address block (clean text, no smoky background)
-                        addressSection(order: order)
-
-                        // Products list (large 80x80 images, no smoky backgrounds)
-                        VStack(alignment: .leading, spacing: 16) {
-                            ForEach(order.items) { item in
-                                orderItemRow(item: item)
-                            }
-                        }
-
-                        // Breakdown / Summary (Итого at the top, no smoky background)
-                        summarySection(order: order)
-                            .padding(.top, 4)
-
-                        // Actions
-                        HStack(spacing: 12) {
-                            DSButton(
-                                action: {
-                                    // Download receipt mock
-                                },
-                                buttonTitle: "Скачать чек",
-                                style: .inputAddress
-                            )
-
-                            DSButton(
-                                action: {
-                                    repeatOrder(items: order.items)
-                                },
-                                buttonTitle: "Повторить заказ",
-                                style: .accent
-                            )
-                        }
-                        .padding(.top, 4)
-                        .padding(.bottom, 28)
-                    }
-                    .padding(.horizontal, 16)
-                }
-            } else {
-                VStack {
-                    Spacer()
-                    Text("Заказ не найден")
-                        .font(DSTypography.caption)
-                        .foregroundStyle(DSColors.textSecondary)
-                    Spacer()
-                }
-                .frame(height: 200)
-            }
         }
+        .padding(.horizontal, 16)
+        .padding(.top, 24)
+        .padding(.bottom, 12)
+    }
+
+    private func notFoundView() -> some View {
+        VStack {
+            Spacer()
+            Text("Заказ не найден")
+                .font(DSTypography.caption)
+                .foregroundStyle(DSColors.textSecondary)
+            Spacer()
+        }
+        .frame(height: 200)
     }
 
     private func addressSection(order: CustomerOrder) -> some View {
@@ -127,6 +112,14 @@ public struct OrderDetailsSheet: View {
                 Text(comment)
                     .font(.system(size: 14, weight: .regular))
                     .foregroundStyle(DSColors.textSecondary)
+            }
+        }
+    }
+
+    private func productsList(order: CustomerOrder) -> some View {
+        VStack(alignment: .leading, spacing: 16) {
+            ForEach(order.items) { item in
+                orderItemRow(item: item)
             }
         }
     }
@@ -200,6 +193,28 @@ public struct OrderDetailsSheet: View {
                     .foregroundStyle(DSColors.textPrimary)
             }
         }
+        .padding(.top, 4)
+    }
+
+    private func actionButtons(
+        onReceipt: @escaping () -> Void,
+        onRepeat: @escaping () -> Void
+    ) -> some View {
+        HStack(spacing: 12) {
+            DSButton(
+                action: onReceipt,
+                buttonTitle: "Скачать чек",
+                style: .inputAddress
+            )
+
+            DSButton(
+                action: onRepeat,
+                buttonTitle: "Повторить заказ",
+                style: .accent
+            )
+        }
+        .padding(.top, 4)
+        .padding(.bottom, 28)
     }
 
     private func pluralizedItems(_ count: Int) -> String {

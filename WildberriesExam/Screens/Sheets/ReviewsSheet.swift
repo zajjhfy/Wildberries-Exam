@@ -20,6 +20,45 @@ public struct ReviewsSheet: View {
         _viewModel = State(initialValue: ProductViewModel(productID: productID, service: service))
     }
 
+    public var body: some View {
+        VStack(spacing: 0) {
+            header {
+                router.dismissTopSheet()
+            }
+
+            if viewModel.state == .loading && details == nil {
+                loadingView()
+            } else {
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 12) {
+                        ratingOverview()
+
+                        writeReviewButton {
+                            router.presentSheet(.addReview(productID: productID))
+                        }
+
+                        reviewsList()
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.bottom, 32)
+                }
+            }
+        }
+        .task {
+            await viewModel.load()
+        }
+    }
+}
+
+extension ReviewsSheet {
+    private static let isoFormatter = ISO8601DateFormatter()
+    private static let displayDateFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "ru_RU")
+        formatter.dateFormat = "d MMMM"
+        return formatter
+    }()
+
     private var details: ProductDetails? {
         viewModel.details
     }
@@ -44,92 +83,77 @@ public struct ReviewsSheet: View {
 
     private var starDistribution: [(stars: Int, count: Int, fraction: Double)] {
         let reviews = details?.reviews ?? []
-        let c5 = reviews.filter { $0.rating == 5 }.count
-        let c4 = reviews.filter { $0.rating == 4 }.count
-        let c3 = reviews.filter { $0.rating == 3 }.count
-        let c2 = reviews.filter { $0.rating == 2 }.count
-        let c1 = reviews.filter { $0.rating == 1 }.count
+        var counts = [1: 0, 2: 0, 3: 0, 4: 0, 5: 0]
+        for review in reviews {
+            counts[review.rating, default: 0] += 1
+        }
 
-        let total = c5 + c4 + c3 + c2 + c1
+        let total = reviews.count
         let divisor = total > 0 ? Double(total) : 1.0
 
-        return [
-            (5, c5, total > 0 ? Double(c5) / divisor : 0.0),
-            (4, c4, total > 0 ? Double(c4) / divisor : 0.0),
-            (3, c3, total > 0 ? Double(c3) / divisor : 0.0),
-            (2, c2, total > 0 ? Double(c2) / divisor : 0.0),
-            (1, c1, total > 0 ? Double(c1) / divisor : 0.0)
-        ]
-    }
-
-    public var body: some View {
-        VStack(spacing: 0) {
-            // Header
-            HStack(alignment: .firstTextBaseline, spacing: 8) {
-                Text("Отзывы")
-                    .font(.system(size: 32, weight: .bold))
-                    .foregroundStyle(DSColors.textPrimary)
-
-                Text("\(displayReviewsCount)")
-                    .font(.system(size: 32, weight: .bold))
-                    .foregroundStyle(Color(uiColor: .systemGray3))
-
-                Spacer()
-
-                DSCloseButton(action: {
-                    router.dismissTopSheet()
-                })
-            }
-            .padding(.horizontal)
-            .padding(.top)
-
-            if viewModel.state == .loading && details == nil {
-                VStack {
-                    Spacer()
-                    ProgressView()
-                    Spacer()
-                }
-                .frame(height: 300)
-            } else {
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 12) {
-                        // Rating overview
-                        ratingOverview
-
-                        // Write review button
-                        DSButton(
-                            action: {
-                                router.presentSheet(.addReview(productID: productID))
-                            },
-                            buttonTitle: "Написать отзыв",
-                            style: .light
-                        )
-
-                        // Reviews list
-                        if viewModel.visibleReviews.isEmpty {
-                            Text("Пока нет отзывов. Будьте первым!")
-                                .font(DSTypography.caption)
-                                .foregroundStyle(DSColors.textSecondary)
-                                .padding(.top, 16)
-                        } else {
-                            VStack(spacing: 12) {
-                                ForEach(Array(viewModel.visibleReviews.enumerated()), id: \.offset) { _, review in
-                                    reviewCard(review: review)
-                                }
-                            }
-                        }
-                    }
-                    .padding(.horizontal, 16)
-                    .padding(.bottom, 32)
-                }
-            }
-        }
-        .task {
-            await viewModel.load()
+        return (1...5).reversed().map { star in
+            let count = counts[star, default: 0]
+            let fraction = total > 0 ? Double(count) / divisor : 0.0
+            return (star, count, fraction)
         }
     }
 
-    private var ratingOverview: some View {
+    private func header(onClose: @escaping () -> Void) -> some View {
+        HStack(alignment: .firstTextBaseline, spacing: 8) {
+            Text("Отзывы")
+                .font(.system(size: 32, weight: .bold))
+                .foregroundStyle(DSColors.textPrimary)
+
+            Text("\(displayReviewsCount)")
+                .font(.system(size: 32, weight: .bold))
+                .foregroundStyle(Color(uiColor: .systemGray3))
+
+            Spacer()
+
+            DSCloseButton(action: onClose)
+        }
+        .padding(.horizontal)
+        .padding(.top)
+    }
+
+    private func loadingView() -> some View {
+        VStack {
+            Spacer()
+            ProgressView()
+            Spacer()
+        }
+        .frame(height: 300)
+    }
+
+    private func writeReviewButton(action: @escaping () -> Void) -> some View {
+        DSButton(
+            action: action,
+            buttonTitle: "Написать отзыв",
+            style: .light
+        )
+    }
+
+    @ViewBuilder
+    private func reviewsList() -> some View {
+        if viewModel.visibleReviews.isEmpty {
+            emptyReviewsView()
+        } else {
+            VStack(spacing: 12) {
+                ForEach(Array(viewModel.visibleReviews.enumerated()), id: \.offset) { _, review in
+                    reviewCard(review: review)
+                }
+            }
+        }
+    }
+
+    private func emptyReviewsView() -> some View {
+        Text("Пока нет отзывов. Будьте первым!")
+            .font(DSTypography.caption)
+            .foregroundStyle(DSColors.textSecondary)
+            .padding(.top, 16)
+    }
+
+    private func ratingOverview() -> some View {
         HStack(spacing: 24) {
             Text(String(format: "%.1f", averageRating))
                 .font(.system(size: 112, weight: .light))
@@ -148,17 +172,15 @@ public struct ReviewsSheet: View {
 
     private func distributionRow(stars: Int, count: Int, fraction: Double) -> some View {
         HStack(spacing: 8) {
-            // Right-aligned star column
             HStack(spacing: 2) {
                 ForEach(0..<stars, id: \.self) { _ in
                     Image(systemName: "star.fill")
                         .font(.system(size: 9))
-                        .foregroundStyle(stars >= 4 ? DSColors.textPrimary : Color(uiColor: .systemGray3))
+                        .foregroundStyle(count > 0 ? DSColors.textPrimary : Color(uiColor: .systemGray3))
                 }
             }
             .frame(width: 52, alignment: .trailing)
 
-            // Thin indicator line
             GeometryReader { geo in
                 ZStack(alignment: .leading) {
                     Capsule()
@@ -175,7 +197,6 @@ public struct ReviewsSheet: View {
             }
             .frame(height: 12)
 
-            // Count number
             Text("\(count)")
                 .font(.system(size: 13, weight: .regular))
                 .foregroundStyle(DSColors.textPrimary)
@@ -215,15 +236,11 @@ public struct ReviewsSheet: View {
     private func formatReviewDate(_ review: ProductReview) -> String {
         let date: Date? = {
             if let d = review.createdAt { return d }
-            let iso = ISO8601DateFormatter()
-            return iso.date(from: review.createdAtText)
+            return Self.isoFormatter.date(from: review.createdAtText)
         }()
 
         if let date {
-            let formatter = DateFormatter()
-            formatter.locale = Locale(identifier: "ru_RU")
-            formatter.dateFormat = "d MMMM"
-            return formatter.string(from: date)
+            return Self.displayDateFormatter.string(from: date)
         }
         return review.createdAtText
     }

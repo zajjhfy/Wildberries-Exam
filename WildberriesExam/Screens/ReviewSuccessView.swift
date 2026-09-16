@@ -18,11 +18,17 @@ public struct ReviewSuccessView: View {
             title: "Отзыв отправлен",
             subtitle: "Спасибо!\nСкоро мы его опубликуем",
             onAction: {
-                router.dismissTopSheet()
+                handleDismiss()
             },
             onClose: {
-                router.dismissTopSheet()
+                handleDismiss()
             }
         )
+    }
+}
+
+extension ReviewSuccessView {
+    private func handleDismiss() {
+        router.dismissTopSheet()
     }
 }

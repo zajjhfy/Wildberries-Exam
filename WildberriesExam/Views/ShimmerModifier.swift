@@ -47,7 +47,6 @@ public extension View {
     }
 }
 
-/// A placeholder card for products during initial loading.
 public struct ProductCardSkeletonView: View {
     public init() {}
 

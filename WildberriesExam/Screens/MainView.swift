@@ -20,6 +20,36 @@ public struct MainView: View {
         self._viewModel = State(initialValue: viewModel)
     }
 
+    public var body: some View {
+        ZStack(alignment: .bottom) {
+            VStack(spacing: 0) {
+                addressHeader(
+                    onTapAddress: { router.presentSheet(.addresses) },
+                    onTapProfile: { router.presentSheet(.profile) }
+                )
+                .padding(.horizontal, 16)
+                .padding(.top, 4)
+                .opacity(router.isSearchPresented ? 0 : 1)
+
+                CatalogView(viewModel: viewModel)
+                    .opacity(router.isSearchPresented ? 0 : 1)
+            }
+
+            if router.isSearchPresented {
+                SearchView()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .background(DSColors.screenBackground.ignoresSafeArea())
+                    .transition(.opacity)
+                    .zIndex(1)
+            }
+
+            FloatingBottomBarView()
+                .zIndex(2)
+        }
+    }
+}
+
+extension MainView {
     private var currentAddressText: String {
         if let selectedID = addressesViewModel.selectedAddressID,
            let address = addressesViewModel.addresses.first(where: { $0.id == selectedID }) {
@@ -35,42 +65,16 @@ public struct MainView: View {
         return "А"
     }
 
-    public var body: some View {
-        ZStack(alignment: .bottom) {
-            VStack(spacing: 0) {
-                // Top sticky header
-                headerView
-                    .padding(.horizontal, 16)
-                    .padding(.top, 4)
-
-                // Main content: either search view or catalog view
-                ZStack {
-                    CatalogView(viewModel: viewModel)
-                        .opacity(router.isSearchPresented ? 0 : 1)
-
-                    if router.isSearchPresented {
-                        SearchView()
-                            .transition(.opacity)
-                    }
-                }
-            }
-
-            // Floating bottom bar
-            FloatingBottomBarView()
-        }
-    }
-
-    private var headerView: some View {
+    private func addressHeader(
+        onTapAddress: @escaping () -> Void,
+        onTapProfile: @escaping () -> Void
+    ) -> some View {
         DSAddressView(
             addressText: currentAddressText,
             userInitial: userInitial,
             isCart: false,
-            onTapProfile: {
-                router.presentSheet(.profile)
-            }
+            onTapProfile: onTapProfile
         )
-        .onTapGesture {
-            router.presentSheet(.addresses)
-        }
+        .onTapGesture(perform: onTapAddress)
     }
 }

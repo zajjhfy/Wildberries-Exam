@@ -30,44 +30,59 @@ public struct AddressSearchSheet: View {
     public var body: some View {
         ScrollView(showsIndicators: false) {
             VStack(alignment: .leading, spacing: 18) {
-                // Header Title
-                Text("Введите адрес")
-                    .font(.system(size: 26, weight: .bold))
-                    .foregroundStyle(DSColors.textPrimary)
-                    .padding(.top, 24)
-                    .padding(.bottom, 6)
-
-                // 7 Form Fields matching Figma design
-                ManualAddressField(title: "Город", placeholder: "Город", text: $city)
-                ManualAddressField(title: "Улица", placeholder: "Улица", text: $street)
-                ManualAddressField(title: "Квартира/офис", placeholder: "Квартира/офис", text: $apartment)
-                ManualAddressField(title: "Подъезд", placeholder: "Подъезд", text: $entrance)
-                ManualAddressField(title: "Этаж", placeholder: "Этаж", text: $floor)
-                ManualAddressField(title: "Код домофона", placeholder: "Код домофона", text: $intercomCode)
-                ManualAddressField(title: "Комментарий", placeholder: "Комментарий", text: $comment)
+                headerTitle()
+                formFields()
 
                 if let errorMessage {
-                    Text(errorMessage)
-                        .font(DSTypography.caption)
-                        .foregroundStyle(.red)
-                        .padding(.top, 4)
+                    errorText(errorMessage)
                 }
 
-                // Save button
-                DSButton(
-                    action: {
-                        saveAddress()
-                    },
-                    buttonTitle: "Сохранить",
-                    style: .accent,
-                    isLoading: isSaving
-                )
-                .padding(.top, 14)
-                .padding(.bottom, 32)
+                saveButton(isLoading: isSaving) {
+                    saveAddress()
+                }
             }
             .padding(.horizontal, 16)
         }
         .scrollDismissesKeyboard(.immediately)
+    }
+}
+
+extension AddressSearchSheet {
+    private func headerTitle() -> some View {
+        Text("Введите адрес")
+            .font(.system(size: 26, weight: .bold))
+            .foregroundStyle(DSColors.textPrimary)
+            .padding(.top, 24)
+            .padding(.bottom, 6)
+    }
+
+    @ViewBuilder
+    private func formFields() -> some View {
+        ManualAddressField(title: "Город", placeholder: "Город", text: $city)
+        ManualAddressField(title: "Улица", placeholder: "Улица", text: $street)
+        ManualAddressField(title: "Квартира/офис", placeholder: "Квартира/офис", text: $apartment)
+        ManualAddressField(title: "Подъезд", placeholder: "Подъезд", text: $entrance)
+        ManualAddressField(title: "Этаж", placeholder: "Этаж", text: $floor)
+        ManualAddressField(title: "Код домофона", placeholder: "Код домофона", text: $intercomCode)
+        ManualAddressField(title: "Комментарий", placeholder: "Комментарий", text: $comment)
+    }
+
+    private func errorText(_ message: String) -> some View {
+        Text(message)
+            .font(DSTypography.caption)
+            .foregroundStyle(.red)
+            .padding(.top, 4)
+    }
+
+    private func saveButton(isLoading: Bool, action: @escaping () -> Void) -> some View {
+        DSButton(
+            action: action,
+            buttonTitle: "Сохранить",
+            style: .accent,
+            isLoading: isLoading
+        )
+        .padding(.top, 14)
+        .padding(.bottom, 32)
     }
 
     private func saveAddress() {

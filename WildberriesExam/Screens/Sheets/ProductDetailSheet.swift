@@ -24,6 +24,53 @@ public struct ProductDetailSheet: View {
         _viewModel = State(initialValue: ProductViewModel(productID: productID, service: service))
     }
 
+    public var body: some View {
+        VStack(spacing: 0) {
+            if viewModel.state == .loading && details == nil {
+                loadingView()
+            } else if let product = product {
+                ZStack(alignment: .bottom) {
+                    ScrollView {
+                        VStack(alignment: .leading, spacing: 0) {
+                            productImageCard(product: product)
+                                .overlay(alignment: .topTrailing) {
+                                    DSCloseButton { router.dismissTopSheet() }
+                                        .padding()
+                                }
+
+                            priceAndFavoriteRow(product: product)
+                            titleAndWeightRow(product: product)
+
+                            ratingAndReviewsRow(product: product) {
+                                router.presentSheet(.reviews(productID: productID))
+                            }
+
+                            if let description = details?.description, !description.isEmpty {
+                                descriptionText(description)
+                            }
+
+                            compositionAccordion()
+                                .padding(.horizontal, 16)
+                                .padding(.top, 14)
+                                .padding(.bottom, 110)
+                        }
+                    }
+
+                    bottomActionBar(product: product)
+                }
+            } else {
+                errorView {
+                    Task { await viewModel.load() }
+                }
+            }
+        }
+        .task {
+            await viewModel.load()
+        }
+    }
+}
+
+extension ProductDetailSheet {
     private var details: ProductDetails? {
         viewModel.details
     }
@@ -36,62 +83,6 @@ public struct ProductDetailSheet: View {
         cartViewModel.quantity(for: productID)
     }
 
-    public var body: some View {
-        VStack(spacing: 0) {
-            // Sheet Header with Close Button
-            if viewModel.state == .loading && details == nil {
-                loadingView
-            } else if let product = product {
-                ZStack(alignment: .bottom) {
-                    ScrollView {
-                        VStack(alignment: .leading, spacing: 0) {
-                            // Product Image Card
-                            productImageCard(product: product)
-                                .overlay(alignment: .topTrailing) {
-                                    DSCloseButton { router.dismissTopSheet() }
-                                        .padding()
-                                }
-
-                            // Price & Favorite Row
-                            priceAndFavoriteRow(product: product)
-
-                            // Title & Weight Row
-                            titleAndWeightRow(product: product)
-
-                            // Rating & Reviews Row
-                            ratingAndReviewsRow(product: product)
-
-                            // Description
-                            if let description = details?.description, !description.isEmpty {
-                                Text(description)
-                                    .font(.system(size: 15, weight: .regular))
-                                    .foregroundStyle(DSColors.textPrimary)
-                                    .lineSpacing(4)
-                                    .padding(.horizontal, 16)
-                                    .padding(.top, 10)
-                            }
-
-                            // Composition Accordion
-                            compositionAccordion
-                                .padding(.horizontal, 16)
-                                .padding(.top, 14)
-                                .padding(.bottom, 110) // Keep scrollable above bottom button
-                        }
-                    }
-
-                    // Pinned Bottom Action Bar
-                    bottomActionBar(product: product)
-                }
-            } else {
-                errorView
-            }
-        }
-        .task {
-            await viewModel.load()
-        }
-    }
-
-    @ViewBuilder
     private func productImageCard(product: CatalogProduct) -> some View {
         DSAsyncImage(
             urlString: product.imageURL?.absoluteString ?? "",
@@ -111,7 +102,6 @@ public struct ProductDetailSheet: View {
         .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
     }
 
-    @ViewBuilder
     private func priceAndFavoriteRow(product: CatalogProduct) -> some View {
         HStack(alignment: .center) {
             Text("\(product.price) ₽")
@@ -120,22 +110,25 @@ public struct ProductDetailSheet: View {
 
             Spacer()
 
-            Button(action: {
+            favoriteButton(product: product) {
                 Task { await favoritesViewModel.toggle(product) }
-            }) {
-                let isFav = favoritesViewModel.isFavorite(product)
-                Image(systemName: "heart.fill")
-                    .font(.system(size: 26))
-                    .foregroundStyle(isFav ? Color(red: 0.89, green: 0.07, blue: 0.75) : Color.black.opacity(0.18))
-                    .frame(width: 32, height: 32)
             }
-            .buttonStyle(.plain)
         }
         .padding(.horizontal, 16)
         .padding(.top, 14)
     }
 
-    @ViewBuilder
+    private func favoriteButton(product: CatalogProduct, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            let isFav = favoritesViewModel.isFavorite(product)
+            Image(systemName: "heart.fill")
+                .font(.system(size: 26))
+                .foregroundStyle(isFav ? Color(red: 0.89, green: 0.07, blue: 0.75) : Color.black.opacity(0.18))
+                .frame(width: 32, height: 32)
+        }
+        .buttonStyle(.plain)
+    }
+
     private func titleAndWeightRow(product: CatalogProduct) -> some View {
         HStack(alignment: .firstTextBaseline, spacing: 8) {
             Text(product.name)
@@ -150,11 +143,8 @@ public struct ProductDetailSheet: View {
         .padding(.top, 2)
     }
 
-    @ViewBuilder
-    private func ratingAndReviewsRow(product: CatalogProduct) -> some View {
-        Button(action: {
-            router.presentSheet(.reviews(productID: productID))
-        }) {
+    private func ratingAndReviewsRow(product: CatalogProduct, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
             HStack(spacing: 6) {
                 Text(product.rating.dsRatingString)
                     .font(.system(size: 14, weight: .semibold))
@@ -183,7 +173,16 @@ public struct ProductDetailSheet: View {
         .padding(.top, 6)
     }
 
-    private var compositionAccordion: some View {
+    private func descriptionText(_ description: String) -> some View {
+        Text(description)
+            .font(.system(size: 15, weight: .regular))
+            .foregroundStyle(DSColors.textPrimary)
+            .lineSpacing(4)
+            .padding(.horizontal, 16)
+            .padding(.top, 10)
+    }
+
+    private func compositionAccordion() -> some View {
         VStack(alignment: .leading, spacing: 8) {
             Button(action: {
                 withAnimation(.easeInOut(duration: 0.25)) {
@@ -218,28 +217,26 @@ public struct ProductDetailSheet: View {
         .clipShape(RoundedRectangle(cornerRadius: 14))
     }
 
-    @ViewBuilder
     private func bottomActionBar(product: CatalogProduct) -> some View {
         HStack(spacing: 12) {
             if quantity > 0 {
-                stepperControl(product: product)
-
-                DSButton(
-                    action: {
-                        router.presentSheet(.cart)
-                    },
-                    buttonTitle: "В корзине",
-                    style: .accent
-                )
-                .frame(maxWidth: .infinity)
-            } else {
-                DSButton(
-                    action: {
+                stepperControl(
+                    product: product,
+                    onIncrement: {
                         Task { await cartViewModel.add(productID: product.id) }
                     },
-                    buttonTitle: "В корзину",
-                    style: .accent
+                    onDecrement: {
+                        Task { await cartViewModel.remove(productID: product.id) }
+                    }
                 )
+
+                inCartButton {
+                    router.presentSheet(.cart)
+                }
+            } else {
+                addToCartButton {
+                    Task { await cartViewModel.add(productID: product.id) }
+                }
             }
         }
         .padding(.horizontal, 16)
@@ -259,12 +256,30 @@ public struct ProductDetailSheet: View {
         .animation(.spring(response: 0.35, dampingFraction: 0.8), value: quantity > 0)
     }
 
-    @ViewBuilder
-    private func stepperControl(product: CatalogProduct) -> some View {
+    private func addToCartButton(action: @escaping () -> Void) -> some View {
+        DSButton(
+            action: action,
+            buttonTitle: "В корзину",
+            style: .accent
+        )
+    }
+
+    private func inCartButton(action: @escaping () -> Void) -> some View {
+        DSButton(
+            action: action,
+            buttonTitle: "В корзине",
+            style: .accent
+        )
+        .frame(maxWidth: .infinity)
+    }
+
+    private func stepperControl(
+        product: CatalogProduct,
+        onIncrement: @escaping () -> Void,
+        onDecrement: @escaping () -> Void
+    ) -> some View {
         HStack(spacing: 0) {
-            Button(action: {
-                Task { await cartViewModel.remove(productID: product.id) }
-            }) {
+            Button(action: onDecrement) {
                 Image(systemName: "minus")
                     .font(.system(size: 18, weight: .bold))
                     .foregroundStyle(DSColors.textPrimary)
@@ -278,9 +293,7 @@ public struct ProductDetailSheet: View {
                 .foregroundStyle(DSColors.textPrimary)
                 .frame(minWidth: 28)
 
-            Button(action: {
-                Task { await cartViewModel.add(productID: product.id) }
-            }) {
+            Button(action: onIncrement) {
                 Image(systemName: "plus")
                     .font(.system(size: 18, weight: .bold))
                     .foregroundStyle(DSColors.textPrimary)
@@ -295,7 +308,7 @@ public struct ProductDetailSheet: View {
         .clipShape(RoundedRectangle(cornerRadius: 12))
     }
 
-    private var loadingView: some View {
+    private func loadingView() -> some View {
         VStack {
             Spacer()
             ProgressView()
@@ -304,15 +317,13 @@ public struct ProductDetailSheet: View {
         .frame(height: 350)
     }
 
-    private var errorView: some View {
+    private func errorView(onRetry: @escaping () -> Void) -> some View {
         VStack(spacing: 8) {
             Spacer()
             Text("Не удалось загрузить товар")
                 .font(DSTypography.buttonTitle)
                 .foregroundStyle(DSColors.textPrimary)
-            Button("Повторить") {
-                Task { await viewModel.load() }
-            }
+            Button("Повторить", action: onRetry)
             Spacer()
         }
         .frame(height: 300)

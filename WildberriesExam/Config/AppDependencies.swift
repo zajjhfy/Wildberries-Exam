@@ -3,7 +3,6 @@ import CryptoKit
 import Foundation
 import NetworkPackage
 
-/// Create once at the app composition root and inject into screen ViewModels.
 struct AppDependencies {
     let catalogService: any CatalogService
     let cartStore: CartStore
@@ -29,7 +28,9 @@ struct AppDependencies {
         discoveryService = CatalogDiscoveryService(catalog: catalog, orders: orderService)
         cartScope = SHA256.hash(data: Data(key.utf8)).map { String(format: "%02x", $0) }.joined()
     }
+}
 
+extension AppDependencies {
     @MainActor func makeCartViewModel() throws -> CartViewModel {
         CartViewModel(store: cartStore, persistence: try SwiftDataCartPersistence(scope: cartScope))
     }
@@ -38,18 +39,37 @@ struct AppDependencies {
         FavoritesViewModel(service: favoriteService)
     }
 
-    @MainActor func makeOrdersViewModel() -> OrdersViewModel { OrdersViewModel(service: orderService) }
-    @MainActor func makeAddressesViewModel() -> AddressesViewModel { AddressesViewModel(service: addressService) }
-    @MainActor func makeProfileViewModel() -> ProfileViewModel { ProfileViewModel(service: profileService) }
+    @MainActor func makeOrdersViewModel() -> OrdersViewModel {
+        OrdersViewModel(service: orderService)
+    }
+
+    @MainActor func makeAddressesViewModel() -> AddressesViewModel {
+        AddressesViewModel(service: addressService)
+    }
+
+    @MainActor func makeProfileViewModel() -> ProfileViewModel {
+        ProfileViewModel(service: profileService)
+    }
+
     @MainActor func makeProductViewModel(id: String) -> ProductViewModel {
         ProductViewModel(productID: id, service: productService)
     }
+
     @MainActor func makeDiscoveryViewModel() -> CatalogDiscoveryViewModel {
         CatalogDiscoveryViewModel(service: discoveryService)
     }
-    @MainActor func makeCheckoutViewModel(cart: CartViewModel, addresses: AddressesViewModel,
-                                          orders: OrdersViewModel) -> CheckoutViewModel {
-        CheckoutViewModel(cartStore: cartStore, cartViewModel: cart, addresses: addresses,
-                          orders: orders, orderService: orderService)
+
+    @MainActor func makeCheckoutViewModel(
+        cart: CartViewModel,
+        addresses: AddressesViewModel,
+        orders: OrdersViewModel
+    ) -> CheckoutViewModel {
+        CheckoutViewModel(
+            cartStore: cartStore,
+            cartViewModel: cart,
+            addresses: addresses,
+            orders: orders,
+            orderService: orderService
+        )
     }
 }

@@ -16,6 +16,35 @@ public struct ProfileSheet: View {
 
     public init() {}
 
+    public var body: some View {
+        VStack(spacing: 0) {
+            header(
+                onEditProfile: { router.presentSheet(.editProfile) },
+                onClose: { router.dismissTopSheet() }
+            )
+
+            ScrollView {
+                VStack(alignment: .leading, spacing: 16) {
+                    if let active = activeOrder {
+                        activeOrderSection(active) {
+                            router.presentSheet(.orderDetails(orderID: active.id))
+                        }
+                    }
+
+                    completedOrdersSection()
+                }
+                .padding(.horizontal, 16)
+                .padding(.bottom, 24)
+            }
+        }
+        .task {
+            await profileViewModel.load()
+            await ordersViewModel.load()
+        }
+    }
+}
+
+extension ProfileSheet {
     private var profile: UserProfile? {
         profileViewModel.profile
     }
@@ -53,118 +82,80 @@ public struct ProfileSheet: View {
         return raw
     }
 
-    public var body: some View {
-        VStack(spacing: 0) {
-            // Header: Avatar + Name + Phone + Close button
-            HStack(alignment: .center) {
-                Button(action: {
-                    router.presentSheet(.editProfile)
-                }) {
-                    HStack(spacing: 14) {
-                        Circle()
-                            .fill(Color(red: 0.92, green: 0.91, blue: 0.96))
-                            .frame(width: 54, height: 54)
-                            .overlay(
-                                Text(userInitial)
-                                    .font(.system(size: 24, weight: .regular))
-                                    .foregroundStyle(DSColors.textPrimary)
-                            )
-
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(profile?.name ?? "Анастасия")
-                                .font(.system(size: 20, weight: .bold))
+    private func header(
+        onEditProfile: @escaping () -> Void,
+        onClose: @escaping () -> Void
+    ) -> some View {
+        HStack(alignment: .center) {
+            Button(action: onEditProfile) {
+                HStack(spacing: 14) {
+                    Circle()
+                        .fill(Color(red: 0.92, green: 0.91, blue: 0.96))
+                        .frame(width: 54, height: 54)
+                        .overlay(
+                            Text(userInitial)
+                                .font(.system(size: 24, weight: .regular))
                                 .foregroundStyle(DSColors.textPrimary)
+                        )
 
-                            HStack(spacing: 4) {
-                                Text(formatPhone(profile?.phone ?? "+7 908 305-80-34"))
-                                    .font(.system(size: 15, weight: .regular))
-                                    .foregroundStyle(DSColors.textSecondary)
-
-                                Image(systemName: "chevron.right")
-                                    .font(.system(size: 11, weight: .semibold))
-                                    .foregroundStyle(DSColors.textSecondary)
-                            }
-                        }
-                    }
-                }
-                .buttonStyle(.plain)
-
-                Spacer()
-
-                DSCloseButton(action: {
-                    router.dismissTopSheet()
-                })
-            }
-            .padding(.horizontal, 16)
-            .padding(.top, 16)
-            .padding(.bottom, 12)
-
-            ScrollView {
-                VStack(alignment: .leading, spacing: 16) {
-
-                    // Active order block (large)
-                    if let active = activeOrder {
-                        Button(action: {
-                            router.presentSheet(.orderDetails(orderID: active.id))
-                        }) {
-                            DSActiveOrderView(
-                                items: active.items.map { item in
-                                    DSOrderItem(
-                                        id: item.id,
-                                        imageURL: item.imageURL?.absoluteString ?? "",
-                                        name: item.name,
-                                        weightText: "\(item.weight) г"
-                                    )
-                                },
-                                addressLine: active.address.addressLine
-                            )
-                        }
-                        .buttonStyle(.plain)
-                    }
-
-                    // Order history
-                    VStack(alignment: .leading, spacing: 12) {
-                        Text("История заказов")
-                            .font(DSTypography.buttonTitle)
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(profile?.name ?? "Анастасия")
+                            .font(.system(size: 20, weight: .bold))
                             .foregroundStyle(DSColors.textPrimary)
-                            .padding(.top, 4)
 
-                        if completedOrders.isEmpty {
-                            Text("У вас пока нет завершенных заказов")
-                                .font(DSTypography.caption)
+                        HStack(spacing: 4) {
+                            Text(formatPhone(profile?.phone ?? "+7 908 305-80-34"))
+                                .font(.system(size: 15, weight: .regular))
                                 .foregroundStyle(DSColors.textSecondary)
-                                .padding(.vertical, 8)
-                        } else {
-                            ForEach(completedOrders) { order in
-                                Button(action: {
-                                    router.presentSheet(.orderDetails(orderID: order.id))
-                                }) {
-                                    DSCompletedOrderView(
-                                        items: order.items.map { item in
-                                            DSOrderItem(
-                                                id: item.id,
-                                                imageURL: item.imageURL?.absoluteString ?? "",
-                                                name: item.name,
-                                                weightText: "\(item.weight) г"
-                                            )
-                                        },
-                                        totalPrice: order.totalPrice,
-                                        totalItems: order.totalItems,
-                                        deliveryDate: order.deliveryDateText ?? "недавно"
-                                    )
-                                }
-                                .buttonStyle(.plain)
-                            }
+
+                            Image(systemName: "chevron.right")
+                                .font(.system(size: 11, weight: .semibold))
+                                .foregroundStyle(DSColors.textSecondary)
                         }
                     }
                 }
-                .padding(.horizontal, 16)
-                .padding(.bottom, 24)
             }
+            .buttonStyle(.plain)
+
+            Spacer()
+
+            DSCloseButton(action: onClose)
         }
-        .task {
-            await profileViewModel.load()
-            await ordersViewModel.load()
+        .padding(.horizontal, 16)
+        .padding(.top, 16)
+        .padding(.bottom, 12)
+    }
+
+    private func activeOrderSection(_ active: CustomerOrder, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            DSActiveOrderView(active)
+        }
+        .buttonStyle(.plain)
+    }
+
+    @ViewBuilder
+    private func completedOrdersSection() -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("История заказов")
+                .font(DSTypography.buttonTitle)
+                .foregroundStyle(DSColors.textPrimary)
+                .padding(.top, 4)
+
+            if completedOrders.isEmpty {
+                Text("У вас пока нет завершенных заказов")
+                    .font(DSTypography.caption)
+                    .foregroundStyle(DSColors.textSecondary)
+                    .padding(.vertical, 8)
+            } else {
+                ForEach(completedOrders) { order in
+                    Button(action: {
+                        router.presentSheet(.orderDetails(orderID: order.id))
+                    }) {
+                        DSCompletedOrderView(order)
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
         }
     }
 }

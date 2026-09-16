@@ -26,6 +26,47 @@ public struct CartSheet: View {
         self.cartStore = cartStore
     }
 
+    public var body: some View {
+        VStack(spacing: 0) {
+            header {
+                router.dismissTopSheet()
+            }
+
+            if availableItems.isEmpty && unavailableItems.isEmpty {
+                emptyCartView()
+            } else {
+                ScrollView(showsIndicators: false) {
+                    VStack(alignment: .leading, spacing: 18) {
+                        deliveryTimeHeader()
+                        availableItemsSection()
+
+                        if !unavailableItems.isEmpty {
+                            unavailableItemsSection()
+                        }
+
+                        addressAndPaymentSection()
+
+                        if let error = errorMessage {
+                            errorText(error)
+                        }
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.bottom, 16)
+                }
+
+                checkoutButton(
+                    price: snapshot?.orderPrice ?? 0,
+                    count: snapshot?.totalItems ?? 0,
+                    isLoading: isSubmitting
+                ) {
+                    performCheckout()
+                }
+            }
+        }
+    }
+}
+
+extension CartSheet {
     private var snapshot: CartSnapshot? {
         cartViewModel.snapshot
     }
@@ -45,78 +86,7 @@ public struct CartSheet: View {
         return addressesViewModel.addresses.first
     }
 
-    public var body: some View {
-        VStack(spacing: 0) {
-            // Header
-            headerView
-
-            if availableItems.isEmpty && unavailableItems.isEmpty {
-                emptyCartView
-            } else {
-                ScrollView(showsIndicators: false) {
-                    VStack(alignment: .leading, spacing: 18) {
-                        // Delivery time subtitle
-                        Text("\(snapshot?.deliveryTime ?? 15) минут · \(pluralizedItems(snapshot?.totalItems ?? 0))")
-                            .font(.system(size: 15, weight: .bold))
-                            .foregroundStyle(DSColors.textPrimary)
-
-                        // Available items list
-                        VStack(spacing: 16) {
-                            ForEach(availableItems) { item in
-                                cartItemRow(item: item)
-                                    .transition(.scale(scale: 0.8).combined(with: .opacity))
-                            }
-                        }
-                        .animation(.easeInOut(duration: 0.25), value: availableItems)
-
-                        // Unavailable items section
-                        if !unavailableItems.isEmpty {
-                            VStack(alignment: .leading, spacing: 12) {
-                                Text("Недоступны для заказа")
-                                    .font(.system(size: 18, weight: .bold))
-                                    .foregroundStyle(DSColors.textPrimary)
-                                    .padding(.top, 8)
-
-                                ForEach(unavailableItems) { item in
-                                    unavailableItemRow(item: item)
-                                }
-                            }
-                        }
-
-                        // Delivery address & payment section
-                        addressAndPaymentSection
-                            .padding(.top, 6)
-
-                        if let error = errorMessage {
-                            Text(error)
-                                .font(DSTypography.caption)
-                                .foregroundStyle(.red)
-                                .padding(.horizontal, 4)
-                        }
-                    }
-                    .padding(.horizontal, 16)
-                    .padding(.bottom, 16)
-                }
-
-                // Bottom Checkout Button (Не трогаем)
-                DSCheckoutButton(
-                    price: snapshot?.totalPrice ?? 0,
-                    count: snapshot?.totalItems ?? 0,
-                    isExpanded: true,
-                    isLoading: isSubmitting,
-                    action: {
-                        performCheckout()
-                    }
-                )
-                .padding(.horizontal, 16)
-                .padding(.vertical, 12)
-                .background(DSColors.screenBackground)
-                .shadow(color: Color.black.opacity(0.06), radius: 6, x: 0, y: -3)
-            }
-        }
-    }
-
-    private var headerView: some View {
+    private func header(onClose: @escaping () -> Void) -> some View {
         HStack(alignment: .firstTextBaseline, spacing: 6) {
             Text("Корзина")
                 .font(.system(size: 32, weight: .bold))
@@ -128,17 +98,15 @@ public struct CartSheet: View {
 
             Spacer()
 
-            DSCloseButton(action: {
-                router.dismissTopSheet()
-            })
-            .padding(.top, 4)
+            DSCloseButton(action: onClose)
+                .padding(.top, 4)
         }
         .padding(.horizontal, 16)
         .padding(.top, 24)
         .padding(.bottom, 8)
     }
 
-    private var emptyCartView: some View {
+    private func emptyCartView() -> some View {
         VStack(spacing: 8) {
             Spacer(minLength: 60)
             Image(systemName: "cart")
@@ -153,6 +121,35 @@ public struct CartSheet: View {
             Spacer(minLength: 60)
         }
         .frame(maxWidth: .infinity)
+    }
+
+    private func deliveryTimeHeader() -> some View {
+        Text("\(snapshot?.deliveryTime ?? 15) минут · \(pluralizedItems(snapshot?.totalItems ?? 0))")
+            .font(.system(size: 15, weight: .bold))
+            .foregroundStyle(DSColors.textPrimary)
+    }
+
+    private func availableItemsSection() -> some View {
+        VStack(spacing: 16) {
+            ForEach(availableItems) { item in
+                cartItemRow(item: item)
+                    .transition(.scale(scale: 0.8).combined(with: .opacity))
+            }
+        }
+        .animation(.easeInOut(duration: 0.25), value: availableItems)
+    }
+
+    private func unavailableItemsSection() -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Недоступны для заказа")
+                .font(.system(size: 18, weight: .bold))
+                .foregroundStyle(DSColors.textPrimary)
+                .padding(.top, 8)
+
+            ForEach(unavailableItems) { item in
+                unavailableItemRow(item: item)
+            }
+        }
     }
 
     private func cartItemRow(item: CartItem) -> some View {
@@ -262,56 +259,13 @@ public struct CartSheet: View {
         .frame(height: 104)
     }
 
-    private var addressAndPaymentSection: some View {
+    private func addressAndPaymentSection() -> some View {
         VStack(alignment: .leading, spacing: 12) {
-            // Address row
-            Button(action: {
+            addressRow {
                 router.presentSheet(.addresses)
-            }) {
-                VStack(alignment: .leading, spacing: 4) {
-                    HStack(spacing: 4) {
-                        Text(currentAddress?.details.addressLine ?? "Выберите адрес доставки")
-                            .font(.system(size: 16, weight: .bold))
-                            .foregroundStyle(DSColors.textPrimary)
-                            .lineLimit(1)
-
-                        Image(systemName: "chevron.right")
-                            .font(.system(size: 13, weight: .semibold))
-                            .foregroundStyle(DSColors.textPrimary)
-                    }
-
-                    if let details = currentAddress?.details {
-                        let detailsStr = [
-                            details.floor.map { "\($0) этаж" },
-                            details.entrance.map { "\($0) подъезд" },
-                            details.intercomCode.map { "код домофона \($0)" }
-                        ].compactMap { $0 }.joined(separator: ", ")
-
-                        if !detailsStr.isEmpty {
-                            Text(detailsStr)
-                                .font(.system(size: 14, weight: .regular))
-                                .foregroundStyle(DSColors.textSecondary)
-                        }
-                    }
-                }
             }
-            .buttonStyle(.plain)
 
-            // Payment row
-            Button(action: {
-                // Payment method selection
-            }) {
-                HStack(spacing: 4) {
-                    Text("Оплата картой")
-                        .font(.system(size: 14, weight: .regular))
-                        .foregroundStyle(DSColors.textSecondary)
-
-                    Image(systemName: "chevron.right")
-                        .font(.system(size: 12, weight: .semibold))
-                        .foregroundStyle(DSColors.textSecondary)
-                }
-            }
-            .buttonStyle(.plain)
+            paymentRow()
         }
         .padding(16)
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -326,6 +280,79 @@ public struct CartSheet: View {
             )
         )
         .clipShape(RoundedRectangle(cornerRadius: 16))
+    }
+
+    private func addressRow(onSelectAddress: @escaping () -> Void) -> some View {
+        Button(action: onSelectAddress) {
+            VStack(alignment: .leading, spacing: 4) {
+                HStack(spacing: 4) {
+                    Text(currentAddress?.details.addressLine ?? "Выберите адрес доставки")
+                        .font(.system(size: 16, weight: .bold))
+                        .foregroundStyle(DSColors.textPrimary)
+                        .lineLimit(1)
+
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(DSColors.textPrimary)
+                }
+
+                if let details = currentAddress?.details {
+                    let detailsStr = [
+                        details.floor.map { "\($0) этаж" },
+                        details.entrance.map { "\($0) подъезд" },
+                        details.intercomCode.map { "код домофона \($0)" }
+                    ].compactMap { $0 }.joined(separator: ", ")
+
+                    if !detailsStr.isEmpty {
+                        Text(detailsStr)
+                            .font(.system(size: 14, weight: .regular))
+                            .foregroundStyle(DSColors.textSecondary)
+                    }
+                }
+            }
+        }
+        .buttonStyle(.plain)
+    }
+
+    private func paymentRow() -> some View {
+        Button(action: {}) {
+            HStack(spacing: 4) {
+                Text("Оплата картой")
+                    .font(.system(size: 14, weight: .regular))
+                    .foregroundStyle(DSColors.textSecondary)
+
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(DSColors.textSecondary)
+            }
+        }
+        .buttonStyle(.plain)
+    }
+
+    private func errorText(_ error: String) -> some View {
+        Text(error)
+            .font(DSTypography.caption)
+            .foregroundStyle(.red)
+            .padding(.horizontal, 4)
+    }
+
+    private func checkoutButton(
+        price: Int,
+        count: Int,
+        isLoading: Bool,
+        action: @escaping () -> Void
+    ) -> some View {
+        DSCheckoutButton(
+            price: price,
+            count: count,
+            isExpanded: true,
+            isLoading: isLoading,
+            action: action
+        )
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
+        .background(DSColors.screenBackground)
+        .shadow(color: Color.black.opacity(0.06), radius: 6, x: 0, y: -3)
     }
 
     private func pluralizedItems(_ count: Int) -> String {
@@ -367,9 +394,7 @@ public struct CartSheet: View {
                 cartViewModel.applyCheckoutResult(updated)
                 await ordersViewModel.load()
                 isSubmitting = false
-
-                // Show success screen
-                router.presentSheet(.orderSuccess)
+                router.replaceTopSheet(with: .orderSuccess)
             } catch {
                 isSubmitting = false
                 errorMessage = error.localizedDescription

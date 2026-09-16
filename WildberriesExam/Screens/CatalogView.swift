@@ -33,7 +33,7 @@ public struct CatalogView: View {
     @State private var selectedTab: Tab = .forYou
     @State private var hasAppeared: Bool = false
 
-    private var prefetchThreshold: CGFloat = 400
+    private let prefetchThreshold: CGFloat = 400
 
     public init(viewModel: CatalogViewModel) {
         _viewModel = State(initialValue: viewModel)
@@ -41,18 +41,10 @@ public struct CatalogView: View {
 
     public var body: some View {
         VStack(spacing: 0) {
-            // Tab bar
-            DSTextTabBar(
-                selectedIndex: Binding(
-                    get: { selectedTab.rawValue },
-                    set: { selectedTab = Tab(rawValue: $0) ?? .forYou }
-                ),
-                tabs: Tab.allCases.map(\.title)
-            )
-            .padding(.horizontal, 16)
-            .padding(.vertical, 8)
+            tabBar()
+                .padding(.horizontal, 16)
+                .padding(.vertical, 8)
 
-            // Content
             ScrollView {
                 switch selectedTab {
                 case .forYou:
@@ -80,46 +72,23 @@ public struct CatalogView: View {
             handleTabChange(newTab)
         }
         .onAppear {
-            if !hasAppeared {
-                hasAppeared = true
-                Task {
-                    if viewModel.selectedCategoryID != nil {
-                        await viewModel.selectCategory(nil)
-                    } else if viewModel.state != .loaded {
-                        await viewModel.refresh()
-                    }
-                }
-            } else if selectedTab == .forYou && viewModel.selectedCategoryID != nil {
-                // Ensure returning to forYou tab resets category filter
-                Task { await viewModel.selectCategory(nil) }
-            }
-        }
-    }
-
-    private func handleTabChange(_ tab: Tab) {
-        Task {
-            switch tab {
-            case .forYou:
-                if viewModel.selectedCategoryID != nil {
-                    await viewModel.selectCategory(nil)
-                }
-            case .catalog:
-                if viewModel.categories.isEmpty {
-                    await viewModel.refresh()
-                }
-            case .discounts:
-                await discoveryViewModel.load(.discounts)
-            case .favorites:
-                await favoritesViewModel.load()
-            case .orderedBefore:
-                await discoveryViewModel.load(.orderedBefore)
-            }
+            handleAppear()
         }
     }
 }
 
-// MARK: - Subviews
 extension CatalogView {
+    @ViewBuilder
+    private func tabBar() -> some View {
+        DSTextTabBar(
+            selectedIndex: Binding(
+                get: { selectedTab.rawValue },
+                set: { selectedTab = Tab(rawValue: $0) ?? .forYou }
+            ),
+            tabs: Tab.allCases.map(\.title)
+        )
+    }
+
     @ViewBuilder
     private func forYouContent() -> some View {
         if viewModel.state == .loading && viewModel.products.isEmpty {
@@ -135,17 +104,12 @@ extension CatalogView {
             ]
 
             LazyVGrid(columns: columns, spacing: 16) {
-                ForEach(Array(viewModel.products.enumerated()), id: \.element.id) { index, product in
+                ForEach(viewModel.products) { product in
                     let isFav = favoritesViewModel.isFavorite(product)
                     let qty = cartViewModel.quantity(for: product.id)
 
                     DSProductCard(
-                        imageURL: product.imageURL?.absoluteString ?? "",
-                        name: product.name,
-                        weightText: "\(Int(product.weight)) г",
-                        price: product.price,
-                        rating: product.rating,
-                        reviewCount: product.reviewCount,
+                        product,
                         isFavorite: isFav,
                         quantity: qty,
                         onToggleFavorite: {
@@ -233,12 +197,7 @@ extension CatalogView {
                 let qty = cartViewModel.quantity(for: product.id)
 
                 DSProductCard(
-                    imageURL: product.imageURL?.absoluteString ?? "",
-                    name: product.name,
-                    weightText: "\(Int(product.weight)) г",
-                    price: product.price,
-                    rating: product.rating,
-                    reviewCount: product.reviewCount,
+                    product,
                     isFavorite: isFav,
                     quantity: qty,
                     onToggleFavorite: {
@@ -311,6 +270,42 @@ extension CatalogView {
             Button("Повторить", action: retry)
                 .padding(.top, 8)
             Spacer(minLength: 60)
+        }
+    }
+
+    private func handleTabChange(_ tab: Tab) {
+        Task {
+            switch tab {
+            case .forYou:
+                if viewModel.selectedCategoryID != nil {
+                    await viewModel.selectCategory(nil)
+                }
+            case .catalog:
+                if viewModel.categories.isEmpty {
+                    await viewModel.refresh()
+                }
+            case .discounts:
+                await discoveryViewModel.load(.discounts)
+            case .favorites:
+                await favoritesViewModel.load()
+            case .orderedBefore:
+                await discoveryViewModel.load(.orderedBefore)
+            }
+        }
+    }
+
+    private func handleAppear() {
+        if !hasAppeared {
+            hasAppeared = true
+            Task {
+                if viewModel.selectedCategoryID != nil {
+                    await viewModel.selectCategory(nil)
+                } else if viewModel.state != .loaded {
+                    await viewModel.refresh()
+                }
+            }
+        } else if selectedTab == .forYou && viewModel.selectedCategoryID != nil {
+            Task { await viewModel.selectCategory(nil) }
         }
     }
 }

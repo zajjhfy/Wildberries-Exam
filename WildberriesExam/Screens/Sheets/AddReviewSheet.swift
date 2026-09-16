@@ -24,72 +24,33 @@ public struct AddReviewSheet: View {
         _viewModel = State(initialValue: ProductViewModel(productID: productID, service: service))
     }
 
-    private var details: ProductDetails? {
-        viewModel.details
-    }
-
-    private var product: CatalogProduct? {
-        details?.product
-    }
-
     public var body: some View {
         VStack(spacing: 0) {
-            // Header
-            HStack {
-                Text("Отзыв о товаре")
-                    .font(.system(size: 32, weight: .bold))
-                    .foregroundStyle(DSColors.textPrimary)
-
-                Spacer()
-
-                DSCloseButton(action: {
-                    router.dismissTopSheet()
-                })
+            header {
+                router.dismissTopSheet()
             }
-            .padding(.horizontal, 16)
-            .padding(.top, 16)
-            .padding(.bottom, 12)
 
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
-                    // Product preview
                     if let product = product {
                         productInfoRow(product: product)
                     }
 
-                    // Rating
-                    ratingSection
+                    ratingSection()
+                    commentSection()
+                    mediaUploadSection()
+                    agreementText()
 
-                    // Comment
-                    commentSection
-
-                    // Media upload
-                    mediaUploadSection
-
-                    // Agreement text
-                    Text("Соглашаюсь с правилами публикации")
-                        .font(.system(size: 14, weight: .regular))
-                        .foregroundStyle(DSColors.textPrimary)
-                        .padding(.top, 4)
-
-                    // Error text
                     if let error = viewModel.submissionError {
-                        Text(error)
-                            .font(DSTypography.caption)
-                            .foregroundStyle(.red)
+                        errorText(error)
                     }
 
-                    // Submit button
-                    DSButton(
-                        action: {
-                            submitReview()
-                        },
-                        buttonTitle: "Оставить отзыв",
-                        style: .accent,
+                    submitButton(
                         isLoading: isSubmitting,
-                        disabled: rating == 0 || isSubmitting
-                    )
-                    .padding(.top, 4)
+                        isDisabled: rating == 0 || isSubmitting
+                    ) {
+                        submitReview()
+                    }
                 }
                 .padding(.horizontal, 16)
                 .padding(.bottom, 24)
@@ -99,6 +60,31 @@ public struct AddReviewSheet: View {
         .task {
             await viewModel.load()
         }
+    }
+}
+
+extension AddReviewSheet {
+    private var details: ProductDetails? {
+        viewModel.details
+    }
+
+    private var product: CatalogProduct? {
+        details?.product
+    }
+
+    private func header(onClose: @escaping () -> Void) -> some View {
+        HStack {
+            Text("Отзыв о товаре")
+                .font(.system(size: 32, weight: .bold))
+                .foregroundStyle(DSColors.textPrimary)
+
+            Spacer()
+
+            DSCloseButton(action: onClose)
+        }
+        .padding(.horizontal, 16)
+        .padding(.top, 16)
+        .padding(.bottom, 12)
     }
 
     @ViewBuilder
@@ -141,7 +127,7 @@ public struct AddReviewSheet: View {
         }
     }
 
-    private var ratingSection: some View {
+    private func ratingSection() -> some View {
         VStack(alignment: .leading, spacing: 10) {
             Text("Оценка")
                 .font(.system(size: 18, weight: .bold))
@@ -164,7 +150,7 @@ public struct AddReviewSheet: View {
         }
     }
 
-    private var commentSection: some View {
+    private func commentSection() -> some View {
         VStack(alignment: .leading, spacing: 10) {
             Text("Комментарий")
                 .font(.system(size: 18, weight: .bold))
@@ -194,9 +180,8 @@ public struct AddReviewSheet: View {
         }
     }
 
-    private var mediaUploadSection: some View {
+    private func mediaUploadSection() -> some View {
         VStack(alignment: .leading, spacing: 12) {
-            // Photo row
             HStack(spacing: 14) {
                 ZStack {
                     RoundedRectangle(cornerRadius: 14)
@@ -221,7 +206,6 @@ public struct AddReviewSheet: View {
                 Spacer()
             }
 
-            // Video row
             HStack(spacing: 14) {
                 ZStack {
                     RoundedRectangle(cornerRadius: 14)
@@ -248,6 +232,30 @@ public struct AddReviewSheet: View {
         }
     }
 
+    private func agreementText() -> some View {
+        Text("Соглашаюсь с правилами публикации")
+            .font(.system(size: 14, weight: .regular))
+            .foregroundStyle(DSColors.textPrimary)
+            .padding(.top, 4)
+    }
+
+    private func errorText(_ error: String) -> some View {
+        Text(error)
+            .font(DSTypography.caption)
+            .foregroundStyle(.red)
+    }
+
+    private func submitButton(isLoading: Bool, isDisabled: Bool, action: @escaping () -> Void) -> some View {
+        DSButton(
+            action: action,
+            buttonTitle: "Оставить отзыв",
+            style: .accent,
+            isLoading: isLoading,
+            disabled: isDisabled
+        )
+        .padding(.top, 4)
+    }
+
     private func submitReview() {
         guard !isSubmitting else { return }
         isSubmitting = true
@@ -263,7 +271,7 @@ public struct AddReviewSheet: View {
             isSubmitting = false
 
             if success {
-                router.presentSheet(.reviewSuccess)
+                router.replaceTopSheet(with: .reviewSuccess)
             }
         }
     }

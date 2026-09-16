@@ -40,33 +40,47 @@ public struct DSSuccessView: View {
         ZStack {
             DSColors.accentGradient
                 .ignoresSafeArea()
-            DSCloseButton(action: onClose, color: .white)
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
+            VStack(spacing: 0) {
+                HStack {
+                    Spacer()
+                    DSCloseButton(action: onClose, color: .white)
+                }
+                .padding(.horizontal, 16)
                 .padding(.top, 12)
-                .padding(.trailing, 12)
-            VStack(alignment: .leading) {
+
                 Spacer()
-                Image(.approve)
-                Text(title)
-                    .font(DSTypography.reviewSuccessTitle)
-                    .foregroundStyle(.white)
-                    .padding(.top, 16)
+
+                VStack(alignment: .leading, spacing: 0) {
+                    Image(.approve)
+
+                    Text(title)
+                        .font(DSTypography.reviewSuccessTitle)
+                        .foregroundStyle(.white)
+                        .minimumScaleFactor(0.7)
+                        .lineLimit(2)
+                        .padding(.top, 24)
+                        .padding(.bottom, 16)
+
+                    Text(subtitle)
+                        .font(DSTypography.reviewSuccessSubtitle)
+                        .foregroundStyle(DSColors.reviewSuccessSubtitle)
+                        .minimumScaleFactor(0.8)
+                        .lineLimit(3)
+
+                    DSButton(
+                        action: {
+                            onAction()
+                            onClose()
+                        },
+                        buttonTitle: "Закрыть",
+                        style: .white
+                    )
+                    .padding(.top, 28)
                     .padding(.bottom, 16)
-                Text(subtitle)
-                    .font(DSTypography.reviewSuccessSubtitle)
-                    .foregroundStyle(DSColors.reviewSuccessSubtitle)
-                DSButton(
-                    action: {
-                        onAction()
-                        onClose()
-                    },
-                    buttonTitle: "Закрыть",
-                    style: .white
-                )
-                .padding(.bottom, 12)
-                .padding(.top, 20)
+                }
+                .padding(.horizontal, 16)
             }
-            .padding(.horizontal, 12)
+            .safeAreaPadding()
         }
     }
 }

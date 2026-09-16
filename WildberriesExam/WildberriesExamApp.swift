@@ -20,6 +20,7 @@ struct WildberriesExamApp: App {
     @State private var ordersViewModel: OrdersViewModel?
     @State private var profileViewModel: ProfileViewModel?
     @State private var discoveryViewModel: CatalogDiscoveryViewModel?
+    @State private var isSplashPresented: Bool = true
 
     init() {
         let deps = Self.makeAppDependencies()
@@ -39,34 +40,47 @@ struct WildberriesExamApp: App {
 
     var body: some Scene {
         WindowGroup {
-            if let cartViewModel,
-               let favoritesViewModel,
-               let addressesViewModel,
-               let ordersViewModel,
-               let profileViewModel,
-               let discoveryViewModel {
-                StackedSheetContainer(appDependencies: appDependencies) {
-                    NavigationStack(path: $router.path) {
-                        MainView(viewModel: CatalogViewModel(service: appDependencies.catalogService))
-                            .navigationDestination(for: Route.self) { route in
-                                destination(for: route)
-                            }
+            ZStack {
+                if let cartViewModel,
+                   let favoritesViewModel,
+                   let addressesViewModel,
+                   let ordersViewModel,
+                   let profileViewModel,
+                   let discoveryViewModel {
+                    StackedSheetContainer(appDependencies: appDependencies) {
+                        NavigationStack(path: $router.path) {
+                            MainView(viewModel: CatalogViewModel(service: appDependencies.catalogService))
+                                .navigationDestination(for: Route.self) { route in
+                                    destination(for: route)
+                                }
+                        }
+                    }
+                    .environmentObject(router)
+                    .environment(cartViewModel)
+                    .environment(favoritesViewModel)
+                    .environment(addressesViewModel)
+                    .environment(ordersViewModel)
+                    .environment(profileViewModel)
+                    .environment(discoveryViewModel)
+                    .task {
+                        await cartViewModel.load()
+                        await favoritesViewModel.load()
+                        await addressesViewModel.load()
+                        await ordersViewModel.load()
+                        await profileViewModel.load()
                     }
                 }
-                .environmentObject(router)
-                .environment(cartViewModel)
-                .environment(favoritesViewModel)
-                .environment(addressesViewModel)
-                .environment(ordersViewModel)
-                .environment(profileViewModel)
-                .environment(discoveryViewModel)
-                .task {
-                    // Preload and synchronize user data on app launch
-                    await cartViewModel.load()
-                    await favoritesViewModel.load()
-                    await addressesViewModel.load()
-                    await ordersViewModel.load()
-                    await profileViewModel.load()
+
+                if isSplashPresented {
+                    SplashScreenView()
+                        .transition(.opacity)
+                        .zIndex(1)
+                }
+            }
+            .task {
+                try? await Task.sleep(nanoseconds: 1_000_000_000)
+                withAnimation(.easeOut(duration: 0.35)) {
+                    isSplashPresented = false
                 }
             }
         }

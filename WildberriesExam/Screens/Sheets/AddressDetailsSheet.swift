@@ -29,84 +29,36 @@ public struct AddressDetailsSheet: View {
         self.mode = mode
     }
 
-    private var isEditMode: Bool {
-        if case .edit = mode { return true }
-        return false
-    }
-
     public var body: some View {
         VStack(spacing: 0) {
             if isEditMode {
-                // Top Action Bar in Edit Mode
-                HStack {
-                    Button(action: {
+                editTopBar(
+                    onBack: {
                         router.dismissTopSheet()
-                    }) {
-                        Image(systemName: "arrow.left")
-                            .font(.system(size: 18, weight: .semibold))
-                            .foregroundStyle(DSColors.textSecondary)
-                            .frame(width: 44, height: 44)
-                            .background(DSColors.screenBackground)
-                            .clipShape(Circle())
-                            .shadow(color: Color.black.opacity(0.12), radius: 5, x: 0, y: 3)
-                            .shadow(color: Color.black.opacity(0.04), radius: 1, x: 0, y: 0)
-                    }
-                    .buttonStyle(.plain)
-
-                    Spacer()
-
-                    DSSelectMapAddressButton {
+                    },
+                    onSelectMap: {
                         router.presentSheet(.addressMap(mode: .pickLocation(initialCenter: [coordinates.longitude, coordinates.latitude])))
-                    }
-
-                    Spacer()
-
-                    if case let .edit(addressID, _, _, _, _, _) = mode {
-                        DSDeleteAddressButton {
+                    },
+                    onDelete: {
+                        if case let .edit(addressID, _, _, _, _, _) = mode {
                             deleteAddress(id: addressID)
                         }
                     }
-                }
-                .padding(.horizontal, 16)
-                .padding(.top, 14)
-                .padding(.bottom, 6)
+                )
             }
 
             ScrollView(showsIndicators: false) {
                 VStack(alignment: .leading, spacing: 18) {
-                    // Address Title
-                    Text(addressLine)
-                        .font(.system(size: 24, weight: .bold))
-                        .foregroundStyle(DSColors.textPrimary)
-                        .lineLimit(2)
-                        .padding(.top, isEditMode ? 6 : 24)
-                        .padding(.bottom, 6)
-
-                    // 5 Form Fields in single column matching Figma design
-                    ManualAddressField(title: "Квартира/офис", placeholder: "Квартира/офис", text: $apartment)
-                    ManualAddressField(title: "Подъезд", placeholder: "Подъезд", text: $entrance)
-                    ManualAddressField(title: "Этаж", placeholder: "Этаж", text: $floor)
-                    ManualAddressField(title: "Код домофона", placeholder: "Код домофона", text: $intercomCode)
-                    ManualAddressField(title: "Комментарий", placeholder: "Комментарий", text: $comment)
+                    addressTitleView()
+                    formFields()
 
                     if let error = errorMessage {
-                        Text(error)
-                            .font(DSTypography.caption)
-                            .foregroundStyle(.red)
-                            .padding(.top, 4)
+                        errorText(error)
                     }
 
-                    // Save Button
-                    DSButton(
-                        action: {
-                            saveAddress()
-                        },
-                        buttonTitle: "Сохранить",
-                        style: .accent,
-                        isLoading: isSaving
-                    )
-                    .padding(.top, 14)
-                    .padding(.bottom, 32)
+                    saveButton(isLoading: isSaving) {
+                        saveAddress()
+                    }
                 }
                 .padding(.horizontal, 16)
             }
@@ -116,14 +68,94 @@ public struct AddressDetailsSheet: View {
             setupInitialData()
         }
         .onChange(of: router.selectedMapLocation) { _, newLocation in
-            if let newLocation {
-                self.addressLine = newLocation.addressLine
-                if newLocation.coordinates.count >= 2,
-                   let coords = AddressCoordinates(longitude: newLocation.coordinates[0], latitude: newLocation.coordinates[1]) {
-                    self.coordinates = coords
-                }
-                router.selectedMapLocation = nil
+            handleLocationChange(newLocation)
+        }
+    }
+}
+
+extension AddressDetailsSheet {
+    private var isEditMode: Bool {
+        if case .edit = mode { return true }
+        return false
+    }
+
+    private func editTopBar(
+        onBack: @escaping () -> Void,
+        onSelectMap: @escaping () -> Void,
+        onDelete: (() -> Void)?
+    ) -> some View {
+        HStack {
+            Button(action: onBack) {
+                Image(systemName: "arrow.left")
+                    .font(.system(size: 18, weight: .semibold))
+                    .foregroundStyle(DSColors.textSecondary)
+                    .frame(width: 44, height: 44)
+                    .background(DSColors.screenBackground)
+                    .clipShape(Circle())
+                    .shadow(color: Color.black.opacity(0.12), radius: 5, x: 0, y: 3)
+                    .shadow(color: Color.black.opacity(0.04), radius: 1, x: 0, y: 0)
             }
+            .buttonStyle(.plain)
+
+            Spacer()
+
+            DSSelectMapAddressButton(onTap: onSelectMap)
+
+            Spacer()
+
+            if let onDelete {
+                DSDeleteAddressButton(action: onDelete)
+            }
+        }
+        .padding(.horizontal, 16)
+        .padding(.top, 14)
+        .padding(.bottom, 6)
+    }
+
+    private func addressTitleView() -> some View {
+        Text(addressLine)
+            .font(.system(size: 24, weight: .bold))
+            .foregroundStyle(DSColors.textPrimary)
+            .lineLimit(2)
+            .padding(.top, isEditMode ? 6 : 24)
+            .padding(.bottom, 6)
+    }
+
+    @ViewBuilder
+    private func formFields() -> some View {
+        ManualAddressField(title: "Квартира/офис", placeholder: "Квартира/офис", text: $apartment)
+        ManualAddressField(title: "Подъезд", placeholder: "Подъезд", text: $entrance)
+        ManualAddressField(title: "Этаж", placeholder: "Этаж", text: $floor)
+        ManualAddressField(title: "Код домофона", placeholder: "Код домофона", text: $intercomCode)
+        ManualAddressField(title: "Комментарий", placeholder: "Комментарий", text: $comment)
+    }
+
+    private func errorText(_ error: String) -> some View {
+        Text(error)
+            .font(DSTypography.caption)
+            .foregroundStyle(.red)
+            .padding(.top, 4)
+    }
+
+    private func saveButton(isLoading: Bool, action: @escaping () -> Void) -> some View {
+        DSButton(
+            action: action,
+            buttonTitle: "Сохранить",
+            style: .accent,
+            isLoading: isLoading
+        )
+        .padding(.top, 14)
+        .padding(.bottom, 32)
+    }
+
+    private func handleLocationChange(_ newLocation: SelectedMapLocation?) {
+        if let newLocation {
+            self.addressLine = newLocation.addressLine
+            if newLocation.coordinates.count >= 2,
+               let coords = AddressCoordinates(longitude: newLocation.coordinates[0], latitude: newLocation.coordinates[1]) {
+                self.coordinates = coords
+            }
+            router.selectedMapLocation = nil
         }
     }
 

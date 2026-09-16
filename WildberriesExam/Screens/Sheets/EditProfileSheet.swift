@@ -21,6 +21,37 @@ public struct EditProfileSheet: View {
 
     public init() {}
 
+    public var body: some View {
+        VStack {
+            navigationBar(
+                onBack: { router.dismissTopSheet() },
+                onLogout: { router.dismissAllSheets() },
+                onDeleteProfile: { router.dismissAllSheets() }
+            )
+
+            ScrollView {
+                VStack(alignment: .center, spacing: 20) {
+                    formFields()
+
+                    if let error = errorMessage {
+                        errorText(error)
+                    }
+
+                    saveButton(isLoading: isSaving) {
+                        saveChanges()
+                    }
+                }
+                .padding(.horizontal, 16)
+                .padding(.bottom, 24)
+            }
+        }
+        .onAppear {
+            populateFields()
+        }
+    }
+}
+
+extension EditProfileSheet {
     private var userInitial: String {
         if let first = name.first {
             return String(first).uppercased()
@@ -28,110 +59,100 @@ public struct EditProfileSheet: View {
         return "А"
     }
 
-    public var body: some View {
-        VStack {
-            // Navigation Bar
-            HStack(alignment: .top) {
-                Button(action: {
-                    router.dismissTopSheet()
-                }) {
-                    Image(systemName: "chevron.left")
-                        .font(.system(size: 16, weight: .semibold))
-                        .foregroundStyle(DSColors.textPrimary)
-                }
-
-                Spacer()
-                
-                Circle()
-                    .fill(DSColors.lightGradient)
-                    .frame(width: 80, height: 80)
-                    .overlay(
-                        Text(userInitial)
-                            .font(.system(size: 32, weight: .bold))
-                            .foregroundStyle(DSColors.textPrimary)
-                    )
-                
-                Spacer()
-
-                // Three dots context menu
-                Menu {
-                    Button(action: {
-                        router.dismissAllSheets()
-                    }) {
-                        Label("Выйти", systemImage: "rectangle.portrait.and.arrow.right")
-                    }
-
-                    Button(role: .destructive, action: {
-                        router.dismissAllSheets()
-                    }) {
-                        Label("Удалить профиль", systemImage: "trash")
-                    }
-                } label: {
-                    Image(systemName: "ellipsis")
-                        .font(.system(size: 18, weight: .semibold))
-                        .foregroundStyle(DSColors.textPrimary)
-                        .frame(width: 24, height: 24)
-                }
+    private func navigationBar(
+        onBack: @escaping () -> Void,
+        onLogout: @escaping () -> Void,
+        onDeleteProfile: @escaping () -> Void
+    ) -> some View {
+        HStack(alignment: .top) {
+            Button(action: onBack) {
+                Image(systemName: "chevron.left")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundStyle(DSColors.textPrimary)
             }
-            .padding(.horizontal)
-            .padding(.top, 14)
-            .padding(.bottom)
 
-            ScrollView {
-                VStack(alignment: .center, spacing: 20) {
-                    // Form fields
-                    VStack(alignment: .leading, spacing: 0) {
-                        DSFormField("Имя", text: $name, topPadding: 12)
-                        Divider()
-                            .padding(.vertical, 8)
+            Spacer()
 
-                        DSFormField(
-                            "Телефон",
-                            placeholder: "+7 900 000-00-00",
-                            text: $phone,
-                            isDisabled: true,
-                            showsLock: true,
-                            topPadding: 12
-                        )
-                        Divider()
-                            .padding(.vertical, 8)
+            Circle()
+                .fill(DSColors.lightGradient)
+                .frame(width: 80, height: 80)
+                .overlay(
+                    Text(userInitial)
+                        .font(.system(size: 32, weight: .bold))
+                        .foregroundStyle(DSColors.textPrimary)
+                )
 
-                        DSFormField(
-                            "День рождения",
-                            placeholder: "18.07.1992",
-                            text: $birthday,
-                            topPadding: 12
-                        )
-                    }
-                    .padding(.horizontal, 4)
+            Spacer()
 
-                    if let error = errorMessage {
-                        Text(error)
-                            .font(DSTypography.caption)
-                            .foregroundStyle(.red)
-                    }
-
-                    // Save button
-                    DSButton(
-                        action: {
-                            saveChanges()
-                        },
-                        buttonTitle: "Сохранить изменения",
-                        style: .accent,
-                        isLoading: isSaving
-                    )
-                    .padding(.top, 16)
+            Menu {
+                Button(action: onLogout) {
+                    Label("Выйти", systemImage: "rectangle.portrait.and.arrow.right")
                 }
-                .padding(.horizontal, 16)
-                .padding(.bottom, 24)
+
+                Button(role: .destructive, action: onDeleteProfile) {
+                    Label("Удалить профиль", systemImage: "trash")
+                }
+            } label: {
+                Image(systemName: "ellipsis")
+                    .font(.system(size: 18, weight: .semibold))
+                    .foregroundStyle(DSColors.textPrimary)
+                    .frame(width: 24, height: 24)
             }
         }
-        .onAppear {
-            if let p = profileViewModel.profile {
-                name = p.name
-                phone = p.phone
-                birthday = p.birthday
-            }
+        .padding(.horizontal)
+        .padding(.top, 14)
+        .padding(.bottom)
+    }
+
+    @ViewBuilder
+    private func formFields() -> some View {
+        VStack(alignment: .leading, spacing: 0) {
+            DSFormField("Имя", text: $name, topPadding: 12)
+            Divider()
+                .padding(.vertical, 8)
+
+            DSFormField(
+                "Телефон",
+                placeholder: "+7 900 000-00-00",
+                text: $phone,
+                isDisabled: true,
+                showsLock: true,
+                topPadding: 12
+            )
+            Divider()
+                .padding(.vertical, 8)
+
+            DSFormField(
+                "День рождения",
+                placeholder: "18.07.1992",
+                text: $birthday,
+                topPadding: 12
+            )
+        }
+        .padding(.horizontal, 4)
+    }
+
+    private func errorText(_ error: String) -> some View {
+        Text(error)
+            .font(DSTypography.caption)
+            .foregroundStyle(.red)
+    }
+
+    private func saveButton(isLoading: Bool, action: @escaping () -> Void) -> some View {
+        DSButton(
+            action: action,
+            buttonTitle: "Сохранить изменения",
+            style: .accent,
+            isLoading: isLoading
+        )
+        .padding(.top, 16)
+    }
+
+    private func populateFields() {
+        if let p = profileViewModel.profile {
+            name = p.name
+            phone = p.phone
+            birthday = p.birthday
         }
     }
 

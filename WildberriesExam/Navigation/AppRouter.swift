@@ -84,23 +84,26 @@ public enum AppSheet: Identifiable, Hashable, Sendable {
         case .addressDetails(let mode): return "address_details_\(mode.id)"
         }
     }
+
+    public var isSuccess: Bool {
+        switch self {
+        case .reviewSuccess, .orderSuccess:
+            return true
+        default:
+            return false
+        }
+    }
 }
 
 @MainActor
 public final class AppRouter: ObservableObject {
     @Published public var path = NavigationPath()
     @Published public var sheetStack: [AppSheet] = []
-
-    // Search state persistence across screens
     @Published public var searchQuery: String = ""
     @Published public var isSearchPresented: Bool = false
-
-    // Picked location from map callback
     @Published public var selectedMapLocation: SelectedMapLocation?
 
     public init() {}
-
-    // MARK: - Navigation Path
 
     public func push(_ route: Route) {
         path.append(route)
@@ -117,8 +120,6 @@ public final class AppRouter: ObservableObject {
     public func popTo(_ target: Int) {
         path.popTo(target)
     }
-
-    // MARK: - Stacked Sheets (LIFO)
 
     public func presentSheet(_ sheet: AppSheet) {
         withAnimation(.spring(response: 0.35, dampingFraction: 0.86)) {
@@ -146,7 +147,6 @@ public final class AppRouter: ObservableObject {
         }
     }
 
-    /// Replaces the top sheet with a new one (e.g. AddReview -> ReviewSuccess)
     public func replaceTopSheet(with sheet: AppSheet) {
         withAnimation(.spring(response: 0.35, dampingFraction: 0.86)) {
             if !sheetStack.isEmpty {

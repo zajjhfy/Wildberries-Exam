@@ -35,121 +35,144 @@ public struct AddressMapSheet: View {
 
     public var body: some View {
         ZStack {
-            // Interactive Map
-            Map(position: $position)
-                .onMapCameraChange(frequency: .onEnd) { context in
-                    currentCenter = context.region.center
-                    currentSpan = context.region.span
-                    currentCoordinates = [context.region.center.longitude, context.region.center.latitude]
-                    reverseGeocode(coordinate: context.region.center)
-                }
-                .ignoresSafeArea()
+            mapView()
+            centerPinView()
 
-            // Center Delivery Pin
-            DSMapPin()
-                .offset(y: -15) // Pin pointer aligns with center
-                .allowsHitTesting(false)
-                .zIndex(1)
-
-            // Overlays: Top-right controls and Bottom address sheet
             VStack {
-                // Top-right controls overlay (Close, +, -, Location)
-                HStack {
-                    Spacer()
-                    VStack(spacing: 8) {
-                        DSCloseMapButton {
-                            router.dismissTopSheet()
-                        }
-                        .padding(.bottom, 64)
-
-                        DSPlusMapButton {
-                            zoomIn()
-                        }
-
-                        DSMinusMapButton {
-                            zoomOut()
-                        }
-
-                        DSLocationMapButton {
-                            centerOnLocation()
-                        }
-                    }
-                    .padding(.trailing, 16)
-                    .padding(.top, 16)
-                }
+                mapControls(
+                    onClose: { router.dismissTopSheet() },
+                    onZoomIn: { zoomIn() },
+                    onZoomOut: { zoomOut() },
+                    onLocate: { centerOnLocation() }
+                )
 
                 Spacer()
 
-                // Bottom Address Panel (Sheet style)
-                VStack(alignment: .leading, spacing: 16) {
-                    Text(currentAddressLine)
-                        .font(.system(size: 20, weight: .bold))
-                        .foregroundStyle(DSColors.textPrimary)
-                        .lineLimit(2)
-
-                    if case .create = mode {
-                        HStack(spacing: 12) {
-                            DSButton(
-                                action: {
-                                    router.presentSheet(.addressSearch)
-                                },
-                                buttonTitle: "Ввести другой",
-                                style: .inputAddress
-                            )
-
-                            DSButton(
-                                action: {
-                                    router.presentSheet(.addressDetails(mode: .createFromMap(
-                                        addressLine: currentAddressLine,
-                                        coordinates: currentCoordinates
-                                    )))
-                                },
-                                buttonTitle: "Выбрать адрес",
-                                style: .accent
-                            )
-                        }
-                    } else {
-                        // Pick location mode (from "Указать на карте")
-                        DSButton(
-                            action: {
-                                router.selectedMapLocation = SelectedMapLocation(
-                                    addressLine: currentAddressLine,
-                                    coordinates: currentCoordinates
-                                )
-                                router.dismissTopSheet()
-                            },
-                            buttonTitle: "Выбрать адрес",
-                            style: .accent
-                        )
-                    }
-                }
-                .padding(.horizontal, 16)
-                .padding(.top, 20)
-                .padding(.bottom, 28)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .background(
-                    Color.white
-                        .clipShape(UnevenRoundedRectangle(
-                            topLeadingRadius: 24,
-                            bottomLeadingRadius: 0,
-                            bottomTrailingRadius: 0,
-                            topTrailingRadius: 24,
-                            style: .continuous
-                        ))
-                        .shadow(color: Color.black.opacity(0.1), radius: 12, x: 0, y: -4)
+                bottomPanel(
+                    onSelect: { handleSelectAddress() },
+                    onEnterDifferent: { router.presentSheet(.addressSearch) }
                 )
             }
             .zIndex(2)
         }
         .frame(maxHeight: .infinity)
         .onAppear {
-            if case let .pickLocation(initialCenter) = mode, let initialCenter, initialCenter.count >= 2 {
-                let coord = CLLocationCoordinate2D(latitude: initialCenter[1], longitude: initialCenter[0])
-                currentCenter = coord
-                currentCoordinates = initialCenter
-                position = .region(MKCoordinateRegion(center: coord, span: currentSpan))
-                reverseGeocode(coordinate: coord)
+            handleAppear()
+        }
+    }
+}
+
+extension AddressMapSheet {
+    private func mapView() -> some View {
+        Map(position: $position)
+            .onMapCameraChange(frequency: .onEnd) { context in
+                currentCenter = context.region.center
+                currentSpan = context.region.span
+                currentCoordinates = [context.region.center.longitude, context.region.center.latitude]
+                reverseGeocode(coordinate: context.region.center)
             }
+            .ignoresSafeArea()
+    }
+
+    private func centerPinView() -> some View {
+        DSMapPin()
+            .offset(y: -15)
+            .allowsHitTesting(false)
+            .zIndex(1)
+    }
+
+    private func mapControls(
+        onClose: @escaping () -> Void,
+        onZoomIn: @escaping () -> Void,
+        onZoomOut: @escaping () -> Void,
+        onLocate: @escaping () -> Void
+    ) -> some View {
+        HStack {
+            Spacer()
+            VStack(spacing: 8) {
+                DSCloseMapButton(action: onClose)
+                    .padding(.bottom, 64)
+
+                DSPlusMapButton(action: onZoomIn)
+                DSMinusMapButton(action: onZoomOut)
+                DSLocationMapButton(action: onLocate)
+            }
+            .padding(.trailing, 16)
+            .padding(.top, 16)
+        }
+    }
+
+    private func bottomPanel(
+        onSelect: @escaping () -> Void,
+        onEnterDifferent: @escaping () -> Void
+    ) -> some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text(currentAddressLine)
+                .font(.system(size: 20, weight: .bold))
+                .foregroundStyle(DSColors.textPrimary)
+                .lineLimit(2)
+
+            if case .create = mode {
+                HStack(spacing: 12) {
+                    DSButton(
+                        action: onEnterDifferent,
+                        buttonTitle: "Ввести другой",
+                        style: .inputAddress
+                    )
+
+                    DSButton(
+                        action: onSelect,
+                        buttonTitle: "Выбрать адрес",
+                        style: .accent
+                    )
+                }
+            } else {
+                DSButton(
+                    action: onSelect,
+                    buttonTitle: "Выбрать адрес",
+                    style: .accent
+                )
+            }
+        }
+        .padding(.horizontal, 16)
+        .padding(.top, 20)
+        .padding(.bottom, 28)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(
+            Color.white
+                .clipShape(UnevenRoundedRectangle(
+                    topLeadingRadius: 24,
+                    bottomLeadingRadius: 0,
+                    bottomTrailingRadius: 0,
+                    topTrailingRadius: 24,
+                    style: .continuous
+                ))
+                .shadow(color: Color.black.opacity(0.1), radius: 12, x: 0, y: -4)
+        )
+    }
+
+    private func handleAppear() {
+        if case let .pickLocation(initialCenter) = mode, let initialCenter, initialCenter.count >= 2 {
+            let coord = CLLocationCoordinate2D(latitude: initialCenter[1], longitude: initialCenter[0])
+            currentCenter = coord
+            currentCoordinates = initialCenter
+            position = .region(MKCoordinateRegion(center: coord, span: currentSpan))
+            reverseGeocode(coordinate: coord)
+        }
+    }
+
+    private func handleSelectAddress() {
+        if case .create = mode {
+            router.presentSheet(.addressDetails(mode: .createFromMap(
+                addressLine: currentAddressLine,
+                coordinates: currentCoordinates
+            )))
+        } else {
+            router.selectedMapLocation = SelectedMapLocation(
+                addressLine: currentAddressLine,
+                coordinates: currentCoordinates
+            )
+            router.dismissTopSheet()
         }
     }
 
